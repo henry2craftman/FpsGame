@@ -9,6 +9,10 @@ using UnityEngine;
 
 // 목표2: 플레이어와의 거리를 측정해서 특정 상태로 만들어준다.
 // 필요속성2: 플레이어와의 거리, 플레이어 트랜스폼
+
+// 목표3: 적의 상태가 Move일 때, 플레이어와의 거리가 공격 범위 밖이면 적이 플레이어를 따라가고
+// 공격 범위 내로 들어오면 공격으로 상태를 전환한다.
+// 필요속성3: 이동 속도, 적의 이동을 위한 캐릭터컨트롤러, 공격범위
 public class EnemyFSM : MonoBehaviour
 {
     // 필요속성: 적 상태
@@ -23,9 +27,14 @@ public class EnemyFSM : MonoBehaviour
     }
     EnemyState enemyState;
 
-    // 필요속성: 플레이어와의 거리, 플레이어 트랜스폼
+    // 필요속성2: 플레이어와의 거리, 플레이어 트랜스폼
     public float findDistance = 5f;
     Transform player;
+
+    // 필요속성3: 이동 속도, 적의 이동을 위한 캐릭터컨트롤러, 공격범위
+    public float moveSpeed;
+    CharacterController characterController;
+    public float attackDistance = 2f;
 
 
     // Start is called before the first frame update
@@ -34,6 +43,8 @@ public class EnemyFSM : MonoBehaviour
         enemyState = EnemyState.Idle;
 
         player = GameObject.Find("Player").transform;
+
+        characterController = GetComponent<CharacterController>();
     }
 
     // Update is called once per frame
@@ -83,12 +94,27 @@ public class EnemyFSM : MonoBehaviour
         throw new NotImplementedException();
     }
 
+    // 목표3: 적의 상태가 Move일 때, 플레이어와의 거리가 공격 범위 밖이면 적이 플레이어를 따라간다.
     private void Move()
     {
-        throw new NotImplementedException();
+        // 플레이어와의 거리가 공격 범위 밖이면 적이 플레이어를 따라간다.
+        float distanceToPlayer = (player.position - transform.position).magnitude;
+        if(distanceToPlayer > attackDistance)
+        {
+            Vector3 dir = (player.position - transform.position).normalized;
+
+            // 플레이어를 따라간다.
+            characterController.Move(dir * moveSpeed * Time.deltaTime);
+        }
+        else
+        {
+            // 공격 범위 내로 들어오면 공격으로 상태를 전환한다.
+            enemyState = EnemyState.Attack;
+            print("상태 전환: Move -> Attack");
+        }
     }
 
-    // 목표2: 플레이어와의 거리를 측정해서 특정 상태로 만들어준다.
+    // 목표2: 플레이어와의 거리를 측정해서 Move 상태로 만들어준다.
     private void Idle()
     {
         float distanceToPlayer = (player.position - transform.position).magnitude;

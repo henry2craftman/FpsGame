@@ -436,7 +436,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4da9c671d8c07944afbebb9db8e72ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 200
+  speed: 500
 --- !u!114 &471126611
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -492,7 +492,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bomb: {fileID: 2377170303258688456, guid: 05053ce7c9a5e7a41bdad333ce92f80a, type: 3}
   firePosition: {fileID: 1849624808}
-  power: 10
+  power: 20
   hitEffect: {fileID: 1361516023}
 --- !u!1 &612125336
 GameObject:
@@ -795,7 +795,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5bf76da11a38cc54683581ea30aa0c13, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 200
+  speed: 500
 --- !u!1 &1361516023 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 100002, guid: 54dd9cb5740188a488b8baebbf19207c, type: 3}
@@ -997,7 +997,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 57693f542dea93140bca16e46012ca18, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  findDistance: 5
+  findDistance: 10
+  moveSpeed: 5
+  attackDistance: 3
 --- !u!1 &1840643807
 GameObject:
   m_ObjectHideFlags: 0
@@ -1118,15 +1120,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400002, guid: 54dd9cb5740188a488b8baebbf19207c, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.977524
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 400002, guid: 54dd9cb5740188a488b8baebbf19207c, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 4.779126
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 400002, guid: 54dd9cb5740188a488b8baebbf19207c, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 4.9
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 400002, guid: 54dd9cb5740188a488b8baebbf19207c, type: 3}
       propertyPath: m_LocalRotation.w
