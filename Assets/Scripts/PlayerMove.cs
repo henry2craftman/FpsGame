@@ -47,7 +47,7 @@ public class PlayerMove : MonoBehaviour
 
             yVelocity = 0;
         }
-        // 바닥에 닿아 있을 대, 수직 속도를 초기화 하고 싶다.
+        // 바닥에 닿아 있을 때, 수직 속도를 초기화 하고 싶다.
         else if(characterController.collisionFlags == CollisionFlags.Below)
         {
             yVelocity = 0;
