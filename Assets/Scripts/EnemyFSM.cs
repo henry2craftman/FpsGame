@@ -27,10 +27,14 @@ using UnityEngine.UI;
 // 목표7. 플레이어의 공격을 받으면 hitDamage만큼 에네미의 hp를 감소신다.
 // 필요속성7: hp
 
-// 목적8: 2초 후에 내 자신을 제거하겠다.
+// 목표8: 2초 후에 내 자신을 제거하겠다.
 
-// 목적9. 현재 에네미의 hp(%)를 hp 슬라이더에 적용한다.
+// 목표9. 현재 에네미의 hp(%)를 hp 슬라이더에 적용한다.
 // 필요속성4: hp, maxHp, Slider
+
+// < Alpha upgrade > 
+// 목표 10. Idle 상태에서 Move 상태로 Animation 전환을 한다.
+// 필요속성10. Animator
 
 public class EnemyFSM : MonoBehaviour
 {
@@ -74,6 +78,9 @@ public class EnemyFSM : MonoBehaviour
     int maxHP = 3;
     public Slider hpSlider;
 
+    // 필요속성10. Animator
+    Animator animator;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -86,6 +93,8 @@ public class EnemyFSM : MonoBehaviour
         originPos = transform.position;
 
         maxHP = hp;
+
+        animator = GetComponentInChildren<Animator>();
     }
 
     // Update is called once per frame
@@ -132,6 +141,8 @@ public class EnemyFSM : MonoBehaviour
     // 목적8: 2초 후에 내 자신을 제거하겠다.
     IEnumerator DieProcess()
     {
+        animator.SetTrigger("Die");
+
         yield return new WaitForSeconds(2);
 
         print("사망");
@@ -169,6 +180,7 @@ public class EnemyFSM : MonoBehaviour
     private void Damaged()
     {
         // 피격 모션 0.5
+        animator.SetTrigger("Damaged");
 
         // 피격 상태 처리를 위한 코루틴 실행
         StartCoroutine(DamageProcess());
@@ -183,6 +195,8 @@ public class EnemyFSM : MonoBehaviour
         // 현재 상태를 이동 상태로 전환한다.
         enemyState = EnemyState.Move;
         print("상태 전환: Damaged -> Move");
+
+        animator.SetTrigger("Damaged2Move");
     }
 
     // 목표6. 초기 위치로 돌아온다. 특정 거리 이내면, Idle 상태로 전환한다.
@@ -200,6 +214,8 @@ public class EnemyFSM : MonoBehaviour
         {
             enemyState = EnemyState.Idle;
             print("상태 전환: Return -> Idle");
+
+            animator.SetTrigger("Return2Idle");
         }
     }
 
@@ -207,7 +223,7 @@ public class EnemyFSM : MonoBehaviour
     {
         // 목표4. 플레이어가 공격범위 내에 들어오면 특정 시간에 한번씩 공격한다.
         float distanceToPlayer = (player.position - transform.position).magnitude;
-        if (distanceToPlayer < attackDistance)
+        if (distanceToPlayer <= attackDistance)
         {
             currentTime += Time.deltaTime;
             // 특정 시간에 한번씩 공격한다.
@@ -215,9 +231,11 @@ public class EnemyFSM : MonoBehaviour
             {
                 if (player.GetComponent<PlayerMove>().hp < 0) return;
 
-                player.GetComponent<PlayerMove>().DamageAction(attackPower);
+                //player.GetComponent<PlayerMove>().DamageAction(attackPower);
                 print("공격!");
                 currentTime = 0;
+
+                animator.SetTrigger("AttackDelay2Attack");
             }
         }
         else 
@@ -226,7 +244,14 @@ public class EnemyFSM : MonoBehaviour
             enemyState = EnemyState.Move;
             print("상태 전환: Attack -> Move");
             currentTime = 0;
+
+            animator.SetTrigger("Attack2Move");
         }
+    }
+
+    public void AttackAction()
+    {
+        player.GetComponent<PlayerMove>().DamageAction(attackPower);
     }
 
     // 목표3: 적의 상태가 Move일 때, 플레이어와의 거리가 공격 범위 밖이면 적이 플레이어를 따라간다.
@@ -241,6 +266,10 @@ public class EnemyFSM : MonoBehaviour
         {
             enemyState = EnemyState.Return;
             print("상태 전환: Move -> Return");
+
+            transform.forward = (originPos - transform.position).normalized;
+
+            animator.SetTrigger("Attack2Move");
         }
         else if(distanceToPlayer > attackDistance)
         {
@@ -248,6 +277,8 @@ public class EnemyFSM : MonoBehaviour
 
             // 플레이어를 따라간다.
             characterController.Move(dir * moveSpeed * Time.deltaTime);
+
+            transform.forward = dir;
         }
         else
         {
@@ -255,6 +286,8 @@ public class EnemyFSM : MonoBehaviour
             enemyState = EnemyState.Attack;
             print("상태 전환: Move -> Attack");
             currentTime = attackDelay;
+
+            animator.SetTrigger("Move2Attack");
         }
     }
 
@@ -269,6 +302,9 @@ public class EnemyFSM : MonoBehaviour
         {
             enemyState = EnemyState.Move;
             print("상태전환: Idle -> Move");
+
+            // 목표 10. Idle 상태에서 Move 상태로 Animation 전환을 한다.
+            animator.SetTrigger("Idle2Move");
         }
     }
 }

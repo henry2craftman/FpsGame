@@ -67,6 +67,9 @@ public class PlayerMove : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // 목적4. 현재 플레이어 hp(%)를 hp 슬라이더에 적용한다.
+        hpSlider.value = (float)hp / maxHP;
+
         // 목적7: GameManager가 Ready 상태일 때는 플레이어, 적이 움직일 수 없도록 한다.
         if (GameManager.Instance.state != GameManager.GameState.Start)
             return;
@@ -109,9 +112,6 @@ public class PlayerMove : MonoBehaviour
 
         // 2-2. 캐릭터 컨트롤러로 나를 이동시키고 싶다.
         characterController.Move(dir * speed * Time.deltaTime);
-
-        // 목적4. 현재 플레이어 hp(%)를 hp 슬라이더에 적용한다.
-        hpSlider.value = (float)hp / maxHP;
     }
 
     // 목적3: 플레이어가 피격을 당하면 hp를 damage만큼 깎는다.
