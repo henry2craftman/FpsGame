@@ -39,7 +39,7 @@ using UnityEngine.UI;
 public class EnemyFSM : MonoBehaviour
 {
     // 필요속성: 적 상태
-    enum EnemyState
+    public enum EnemyState
     {
         Idle,
         Move,
@@ -48,7 +48,7 @@ public class EnemyFSM : MonoBehaviour
         Damaged,
         Die
     }
-    EnemyState enemyState;
+    public EnemyState enemyState;
 
     // 필요속성2: 플레이어와의 거리, 플레이어 트랜스폼
     public float findDistance = 5f;
@@ -242,7 +242,7 @@ public class EnemyFSM : MonoBehaviour
         {
             // 그렇지 않으면 Move로 상태를 전환한다.
             enemyState = EnemyState.Move;
-            print("상태 전환: Attack -> Move");
+            print("상태 전환: Attack -> Move"); 
             currentTime = 0;
 
             animator.SetTrigger("Attack2Move");
@@ -262,7 +262,7 @@ public class EnemyFSM : MonoBehaviour
 
         // 목표5. 플레이어를 따라가다가 초기 위치에서 일정 거리를 벗어나면 초기 위치로 돌아온다.
         float distanceToOriginPos = (originPos -  transform.position).magnitude;
-        if(distanceToOriginPos > moveDistance)
+        if(distanceToOriginPos >= moveDistance)
         {
             enemyState = EnemyState.Return;
             print("상태 전환: Move -> Return");
@@ -271,7 +271,7 @@ public class EnemyFSM : MonoBehaviour
 
             animator.SetTrigger("Attack2Move");
         }
-        else if(distanceToPlayer > attackDistance)
+        else if(distanceToPlayer >= attackDistance)
         {
             Vector3 dir = (player.position - transform.position).normalized;
 
@@ -287,7 +287,7 @@ public class EnemyFSM : MonoBehaviour
             print("상태 전환: Move -> Attack");
             currentTime = attackDelay;
 
-            animator.SetTrigger("Move2Attack");
+            animator.SetTrigger("Move2AttackDelay");
         }
     }
 
