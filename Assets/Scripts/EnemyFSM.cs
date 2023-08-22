@@ -84,6 +84,8 @@ public class EnemyFSM : MonoBehaviour
         characterController = GetComponent<CharacterController>();
 
         originPos = transform.position;
+
+        maxHP = hp;
     }
 
     // Update is called once per frame
@@ -207,6 +209,8 @@ public class EnemyFSM : MonoBehaviour
             // 특정 시간에 한번씩 공격한다.
             if(currentTime > attackDelay)
             {
+                if (player.GetComponent<PlayerMove>().hp < 0) return;
+
                 player.GetComponent<PlayerMove>().DamageAction(attackPower);
                 print("공격!");
                 currentTime = 0;
