@@ -57,6 +57,10 @@ public class PlayerFire : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // 목적7: GameManager가 Ready 상태일 때는 플레이어, 적이 움직일 수 없도록 한다.
+        if (GameManager.Instance.state != GameManager.GameState.Start)
+            return;
+
         // 순서1. 마우스 오른쪽 버튼을 누른다.
         if (Input.GetMouseButtonDown(1)) // 왼쪽(0), 오른쪽(1), 휠(2)
         {

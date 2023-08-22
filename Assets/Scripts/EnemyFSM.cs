@@ -91,6 +91,10 @@ public class EnemyFSM : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // 목적7: GameManager가 Ready 상태일 때는 플레이어, 적이 움직일 수 없도록 한다.
+        if (GameManager.Instance.state != GameManager.GameState.Start)
+            return;
+
         // 목표: 적을 FSM 다이어그램에 따라 동작시키고 싶다.
         switch (enemyState)
         {
