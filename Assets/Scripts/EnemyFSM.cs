@@ -269,7 +269,7 @@ public class EnemyFSM : MonoBehaviour
 
             transform.forward = (originPos - transform.position).normalized;
 
-            animator.SetTrigger("Attack2Move");
+            animator.SetTrigger("Move2Idle");
         }
         else if(distanceToPlayer >= attackDistance)
         {
