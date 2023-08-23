@@ -10,6 +10,9 @@ using UnityEngine;
 
 // 목적3: 플레이어의 hp가 0보다 작으면 상태텍스트와 상태를 GameOver로 바꿔주고
 // 필요속성3: hp가 들어있는 playerMove
+
+// 목적4: 플레이어의 hp가 0 이하라면, 플레이어의 애니메이션을 멈춘다.
+// 필요속성: 플레이어의 애니메이터 컴포넌트
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
@@ -28,6 +31,9 @@ public class GameManager : MonoBehaviour
     // 필요속성3: hp가 들어있는 playerMove
     PlayerMove player;
 
+    // 필요속성: 플레이어의 애니메이터 컴포넌트
+    Animator animator;
+
     private void Awake()
     {
         if (Instance == null)
@@ -45,6 +51,8 @@ public class GameManager : MonoBehaviour
         StartCoroutine(GameStart());
 
         player = GameObject.Find("Player").GetComponent<PlayerMove>();
+
+        animator = player.GetComponentInChildren<Animator>();
     }
 
     // 목적2: 2초 후 게임이 Ready 상태에서 Start 상태(초록색)로 변경되며 게임이 시작된다. 
@@ -69,8 +77,11 @@ public class GameManager : MonoBehaviour
     // 목적3: 플레이어의 hp가 0보다 작으면 상태텍스트와 상태를 GameOver로 바꿔주고
     void CheckGameOver()
     {
-        if(player.hp < 0)
+        if(player.hp <= 0)
         {
+            // 목적4: 플레이어의 hp가 0 이하라면, 플레이어의 애니메이션을 멈춘다.
+            animator.SetFloat("MoveMotion", 0f);
+
             // 상태 텍스트 ON
             stateText.gameObject.SetActive(true);
 

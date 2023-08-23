@@ -16,6 +16,9 @@ using UnityEngine;
 // 필요속성: 피격효과 게임오브젝트, 이펙트의 파티클 시스템
 
 // 목적3: 레이가 부딪힌 대상이 Enemy라면 Enemy에게 데미지를 주겠다.
+
+// 목적4: 이동 블랜드 트리의 파라메터 값이 0일 때, Attack Trigger를 시전하겠다.
+// 필요속성: 자식 오브젝트의 애니메이터
 public class PlayerFire : MonoBehaviour
 {
     // 필요속성: 폭탄 게임오브젝트, 발사 위치, 방향
@@ -29,6 +32,9 @@ public class PlayerFire : MonoBehaviour
     public GameObject hitEffect;
     ParticleSystem particleSystem;
 
+    // 필요속성: 자식 오브젝트의 애니메이터
+    Animator animator;
+
     void Awake()
     {
         playerFire = GameObject.Find("Player").GetComponent<PlayerFire>();
@@ -38,16 +44,18 @@ public class PlayerFire : MonoBehaviour
     {
         particleSystem = hitEffect.GetComponent<ParticleSystem>();
 
-        int x = 3;
-        int y = 4;
-        Swap(ref x, ref y);
+        animator = GetComponentInChildren<Animator>();
+
+        //int x = 3;
+        //int y = 4;
+        //Swap(ref x, ref y);
         //print(string.Format("x: {0}, y: {1}", x, y));
 
-        int a = 7;
-        int b = 3;
-        int quotient;
+        //int a = 7;
+        //int b = 3;
+        //int quotient;
 
-        quotient = Divide(a, b, out remainder);
+        //quotient = Divide(a, b, out remainder);
         //print(string.Format("몫: {0}, 나머지: {1}", quotient, remainder));
     }
     int remainder;
@@ -76,6 +84,13 @@ public class PlayerFire : MonoBehaviour
         // 2-1. 마우스 왼쪽 버튼을 누른다.
         if(Input.GetMouseButtonDown(0))
         {
+            // 목적4: 이동 블랜드 트리의 파라메터 값이 0일 때, Attack Trigger를 시전하겠다.
+            if(animator.GetFloat("MoveMotion") == 0)
+            {
+                animator.SetTrigger("Attack");
+            }
+
+
             // 2-2. 레이를 생성하고 발사 위치와 발사 방향을 설정한다.
             Ray ray = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
 

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.UI;
 
 // 목표: 적을 FSM 다이어그램에 따라 동작시키고 싶다.
@@ -36,6 +37,8 @@ using UnityEngine.UI;
 // 목표 10. Idle 상태에서 Move 상태로 Animation 전환을 한다.
 // 필요속성10. Animator
 
+// 목표 11. 네비게이션 에이전트의 최소 거리를 입력해 주고, 플레이어를 따라갈 수 있도록 한다. 
+// 필요속성11. 네비게이션 에이전트
 public class EnemyFSM : MonoBehaviour
 {
     // 필요속성: 적 상태
@@ -81,6 +84,9 @@ public class EnemyFSM : MonoBehaviour
     // 필요속성10. Animator
     Animator animator;
 
+    // 필요속성11. 네비게이션 에이전트
+    NavMeshAgent navMeshAgent;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -95,6 +101,8 @@ public class EnemyFSM : MonoBehaviour
         maxHP = hp;
 
         animator = GetComponentInChildren<Animator>();
+
+        navMeshAgent = GetComponent<NavMeshAgent>();
     }
 
     // Update is called once per frame
@@ -273,12 +281,17 @@ public class EnemyFSM : MonoBehaviour
         }
         else if(distanceToPlayer > attackDistance)
         {
-            Vector3 dir = (player.position - transform.position).normalized;
+            //Vector3 dir = (player.position - transform.position).normalized;
 
-            // 플레이어를 따라간다.
-            characterController.Move(dir * moveSpeed * Time.deltaTime);
+            //// 플레이어를 따라간다.
+            //characterController.Move(dir * moveSpeed * Time.deltaTime);
 
-            transform.forward = dir;
+            //transform.forward = dir;
+
+            navMeshAgent.stoppingDistance = attackDelay;
+
+            navMeshAgent.SetDestination(player.position);
+
         }
         else
         {
