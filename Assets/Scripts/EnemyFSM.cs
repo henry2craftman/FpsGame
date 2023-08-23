@@ -269,7 +269,7 @@ public class EnemyFSM : MonoBehaviour
 
             transform.forward = (originPos - transform.position).normalized;
 
-            animator.SetTrigger("Attack2Move");
+            animator.SetTrigger("Move2Return");
         }
         else if(distanceToPlayer > attackDistance)
         {
@@ -287,7 +287,7 @@ public class EnemyFSM : MonoBehaviour
             print("상태 전환: Move -> Attack");
             currentTime = attackDelay;
 
-            animator.SetTrigger("Move2Attack");
+            animator.SetTrigger("Move2AttackDelay");
         }
     }
 
