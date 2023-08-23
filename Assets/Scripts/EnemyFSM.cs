@@ -39,6 +39,10 @@ using UnityEngine.UI;
 
 // 목표 11. 네비게이션 에이전트의 최소 거리를 입력해 주고, 플레이어를 따라갈 수 있도록 한다. 
 // 필요속성11. 네비게이션 에이전트
+
+// 목표 12: 내비게이션 에이전트의 이동을 멈추고 네비게이션 경로를 초기화 해준다.
+
+// 목표 13: Enemy의 초기 속도를 Agent의 속도에 적용하고 싶다.
 public class EnemyFSM : MonoBehaviour
 {
     // 필요속성: 적 상태
@@ -103,6 +107,9 @@ public class EnemyFSM : MonoBehaviour
         animator = GetComponentInChildren<Animator>();
 
         navMeshAgent = GetComponent<NavMeshAgent>();
+
+        // 목표 13: Enemy의 초기 속도를 Agent의 속도에 적용하고 싶다.
+        navMeshAgent.speed = moveSpeed;
     }
 
     // Update is called once per frame
@@ -169,6 +176,10 @@ public class EnemyFSM : MonoBehaviour
         // 플레이어의 공격력 만큼 hp를 감소
         hp -= damage;
 
+        // 목표 12: 내비게이션 에이전트의 이동을 멈추고 네비게이션 경로를 초기화 해준다.
+        navMeshAgent.isStopped = true;
+        navMeshAgent.ResetPath();
+
         // 목표8. 에네미의 체력이 0보다 크면 피격 상태로 전환
         if (hp > 0)
         {
@@ -214,12 +225,21 @@ public class EnemyFSM : MonoBehaviour
         // 초기 위치로 돌아온다.
         if ( distanceToOriginPos > returnDistance)
         {
-            Vector3 dir = (originPos - transform.position).normalized;
-            characterController.Move(dir * moveSpeed * Time.deltaTime);
+            //Vector3 dir = (originPos - transform.position).normalized;
+            //characterController.Move(dir * moveSpeed * Time.deltaTime);
+
+            // 목적지를 초기 위치로 설정
+            navMeshAgent.destination = originPos;
+
+            // 네비게이션으로 접근하는 최소 거리 초기화
+            navMeshAgent.stoppingDistance = 0;
         }
         // 특정 거리(0.1) 이내면, Idle 상태로 전환한다.
         else
         {
+            navMeshAgent.isStopped = true;
+            navMeshAgent.ResetPath();
+
             enemyState = EnemyState.Idle;
             print("상태 전환: Return -> Idle");
 
@@ -288,8 +308,12 @@ public class EnemyFSM : MonoBehaviour
 
             //transform.forward = dir;
 
-            navMeshAgent.stoppingDistance = attackDelay;
+            // 이동을 멈추고 경로를 초기화한다.
+            navMeshAgent.isStopped = true;
+            navMeshAgent.ResetPath();
 
+            // 목표 11. 네비게이션 에이전트의 최소 거리를 입력해 주고, 플레이어를 따라갈 수 있도록 한다. 
+            navMeshAgent.stoppingDistance = attackDistance;
             navMeshAgent.SetDestination(player.position);
 
         }
