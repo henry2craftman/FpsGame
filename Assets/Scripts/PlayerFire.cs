@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
+using TMPro;
 using UnityEngine;
 
 // 목적: 마우스 오른쪽 버튼을 눌러 폭탄을 특정 방향으로 발사하고 싶다.
@@ -19,6 +21,9 @@ using UnityEngine;
 
 // 목적4: 이동 블랜드 트리의 파라메터 값이 0일 때, Attack Trigger를 시전하겠다.
 // 필요속성: 자식 오브젝트의 애니메이터
+
+// 목적5: 키보드의 특정 키 입력으로 무기모드를 전환하고 싶다.
+// 필요속성5. 무기모드 열거형 변수, 줌확인 변수, Weapon Mode 텍스트
 public class PlayerFire : MonoBehaviour
 {
     // 필요속성: 폭탄 게임오브젝트, 발사 위치, 방향
@@ -35,6 +40,16 @@ public class PlayerFire : MonoBehaviour
     // 필요속성: 자식 오브젝트의 애니메이터
     Animator animator;
 
+    // 필요속성5. 무기모드 열거형 변수, 줌확인 변수, Weapon Mode 텍스트
+    public enum WeaponMode
+    {
+        Normal,
+        Sniper
+    }
+    public WeaponMode weaponMode = WeaponMode.Normal;
+    bool isZoomMode = false;
+    public TMP_Text weaponModeTxt;
+
     void Awake()
     {
         playerFire = GameObject.Find("Player").GetComponent<PlayerFire>();
@@ -46,6 +61,7 @@ public class PlayerFire : MonoBehaviour
 
         animator = GetComponentInChildren<Animator>();
 
+        weaponModeTxt.text = "Normal Mode";
         //int x = 3;
         //int y = 4;
         //Swap(ref x, ref y);
@@ -69,16 +85,42 @@ public class PlayerFire : MonoBehaviour
         if (GameManager.Instance.state != GameManager.GameState.Start)
             return;
 
+        // 목적5: 키보드의 특정 키 입력으로 무기모드를 전환하고 싶다.
+        // 순서5-1. 노멀모드: 마우스 오른쪽 버튼을 누르면 수류탄을 던지고 싶다.
+        // 순서5-2. 스나이퍼모드: 마우스 오른쪽 버튼을 누르면 화면을 확대하고 싶다.
+
         // 순서1. 마우스 오른쪽 버튼을 누른다.
         if (Input.GetMouseButtonDown(1)) // 왼쪽(0), 오른쪽(1), 휠(2)
         {
-            // 순서2. 폭탄 게임오브젝트를 생성하고 firePosition에 위치시킨다.
-            GameObject bombGO = Instantiate(bomb);
-            bombGO.transform.position = firePosition.transform.position;
+            switch(weaponMode)
+            {
+                // 순서5-1. 노멀모드: 마우스 오른쪽 버튼을 누르면 수류탄을 던지고 싶다.
+                case WeaponMode.Normal:
+                    // 순서2. 폭탄 게임오브젝트를 생성하고 firePosition에 위치시킨다.
+                    GameObject bombGO = Instantiate(bomb);
+                    bombGO.transform.position = firePosition.transform.position;
 
-            // 순서3. 폭탄 오브젝트의 rigidBody를 가져와서 카메라 정면 방향으로 힘을 가한다.
-            Rigidbody rigidbody = bombGO.GetComponent<Rigidbody>();
-            rigidbody.AddForce(Camera.main.transform.forward * power, ForceMode.Impulse);
+                    // 순서3. 폭탄 오브젝트의 rigidBody를 가져와서 카메라 정면 방향으로 힘을 가한다.
+                    Rigidbody rigidbody = bombGO.GetComponent<Rigidbody>();
+                    rigidbody.AddForce(Camera.main.transform.forward * power, ForceMode.Impulse);
+                    break;
+
+                // 순서5-2. 스나이퍼모드: 마우스 오른쪽 버튼을 누르면 화면을 확대하고 싶다.
+                case WeaponMode.Sniper:
+                    if(!isZoomMode)
+                    {
+                        // 시야각 좁게 하여 확대
+                        Camera.main.fieldOfView = 15;
+                        isZoomMode = true;
+                    }
+                    else
+                    {
+                        // 원상태로 복구
+                        Camera.main.fieldOfView = 60;
+                        isZoomMode = false;
+                    }
+                    break;
+            }
         }
 
         // 2-1. 마우스 왼쪽 버튼을 누른다.
@@ -117,6 +159,25 @@ public class PlayerFire : MonoBehaviour
                 }
 
             }
+        }
+
+        // 키보드 숫자 1번을 누르면, 무기 모드를 노멀 모드로 설정한다.
+        if(Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            weaponMode = WeaponMode.Normal;
+
+            weaponModeTxt.text = "Normal Mode";
+
+            // 카메라 FoV를 처음 상태로 바꿔준다.
+            Camera.main.fieldOfView = 60;
+        }
+        // 키보드 숫자 2번을 누르면, 무기 모드를 저격 모드로 설정한다.
+        else if(Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            weaponMode = WeaponMode.Sniper;
+
+            weaponModeTxt.text = "Sniper Mode";
+
         }
     }
 
