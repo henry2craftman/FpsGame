@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using Unity.AI.Navigation;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
@@ -307,6 +308,23 @@ public class EnemyFSM : MonoBehaviour
             //characterController.Move(dir * moveSpeed * Time.deltaTime);
 
             //transform.forward = dir;
+            if (navMeshAgent.isOnOffMeshLink)
+            {
+                OffMeshLinkData data = navMeshAgent.currentOffMeshLinkData;
+
+                if (data.offMeshLink)
+                {
+                    Debug.Log("on OFFmeshLink: " + data.offMeshLink.name, data.offMeshLink.gameObject);
+                    print(data.offMeshLink.area);
+                }
+                else
+                {
+                    object owner = navMeshAgent.navMeshOwner;
+                    Debug.Log("on NAVmeshLink: " + owner.ToString(), (owner as Component).gameObject);
+                }
+            }
+
+
 
             // 이동을 멈추고 경로를 초기화한다.
             navMeshAgent.isStopped = true;
@@ -315,7 +333,6 @@ public class EnemyFSM : MonoBehaviour
             // 목표 11. 네비게이션 에이전트의 최소 거리를 입력해 주고, 플레이어를 따라갈 수 있도록 한다. 
             navMeshAgent.stoppingDistance = attackDistance;
             navMeshAgent.SetDestination(player.position);
-
         }
         else
         {
