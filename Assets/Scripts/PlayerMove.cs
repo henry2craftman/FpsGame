@@ -30,6 +30,9 @@ using UnityEngine.UI;
 // 필요속성: 현재시간, hitImage 종료시간
 
 // 목적7: GameManager가 Ready 상태일 때는 플레이어, 적이 움직일 수 없도록 한다.
+
+// 목적8: 플레이어의 자식 중 모델링 오브젝트에 있는 애니메이터 컴포넌트를 가져와서 블랜딩 트리를 호출하고 싶다.
+// 필요속성: 모델링 오브젝트의 애니메이터
 public class PlayerMove : MonoBehaviour
 {
     // 필요속성: 이동속도
@@ -56,11 +59,16 @@ public class PlayerMove : MonoBehaviour
     float currentTime;
     public float hitImageEndTime;
 
+    // 필요속성: 모델링 오브젝트의 애니메이터
+    Animator animator;
+
     private void Start()
     {
         characterController = GetComponent<CharacterController>();
 
         maxHP = hp;
+
+        animator = GetComponentInChildren<Animator>();
     }
 
 
@@ -102,6 +110,9 @@ public class PlayerMove : MonoBehaviour
         Vector3 dir = new Vector3(h, 0, v);
         dir = Camera.main.transform.TransformDirection(dir);
 
+        // 목적8: 플레이어의 자식 중 모델링 오브젝트에 있는 애니메이터 컴포넌트를 가져와서 블랜딩 트리를 호출하고 싶다.
+        animator.SetFloat("MoveMotion", dir.magnitude);
+
         // 2-1. 캐릭터 수직 속도에 중력을 적용하고 싶다.
         yVelocity += gravity * Time.deltaTime;
         dir.y = yVelocity;
@@ -112,6 +123,8 @@ public class PlayerMove : MonoBehaviour
 
         // 2-2. 캐릭터 컨트롤러로 나를 이동시키고 싶다.
         characterController.Move(dir * speed * Time.deltaTime);
+
+
     }
 
     // 목적3: 플레이어가 피격을 당하면 hp를 damage만큼 깎는다.

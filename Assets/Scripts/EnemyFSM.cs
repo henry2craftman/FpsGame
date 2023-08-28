@@ -2,7 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.UI;
 
 // 목표: 적을 FSM 다이어그램에 따라 동작시키고 싶다.
@@ -36,10 +38,18 @@ using UnityEngine.UI;
 // 목표 10. Idle 상태에서 Move 상태로 Animation 전환을 한다.
 // 필요속성10. Animator
 
+// 목표 11. 네비게이션 에이전트의 최소 거리를 입력해 주고, 플레이어를 따라갈 수 있도록 한다. 
+// 필요속성11. 네비게이션 에이전트
+
+// 목표 12: 내비게이션 에이전트의 이동을 멈추고 네비게이션 경로를 초기화 해준다.
+
+// 목표 13: Enemy의 초기 속도를 Agent의 속도에 적용하고 싶다.
+
+// 목표 14: 에이전트가 NavMeshLink에 올라고 내려가는지 확인하여 점프 애니메이션을 넣고싶다.
 public class EnemyFSM : MonoBehaviour
 {
     // 필요속성: 적 상태
-    public enum EnemyState
+    enum EnemyState
     {
         Idle,
         Move,
@@ -48,7 +58,7 @@ public class EnemyFSM : MonoBehaviour
         Damaged,
         Die
     }
-    public EnemyState enemyState;
+    EnemyState enemyState;
 
     // 필요속성2: 플레이어와의 거리, 플레이어 트랜스폼
     public float findDistance = 5f;
@@ -81,6 +91,9 @@ public class EnemyFSM : MonoBehaviour
     // 필요속성10. Animator
     Animator animator;
 
+    // 필요속성11. 네비게이션 에이전트
+    NavMeshAgent navMeshAgent;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -95,6 +108,11 @@ public class EnemyFSM : MonoBehaviour
         maxHP = hp;
 
         animator = GetComponentInChildren<Animator>();
+
+        navMeshAgent = GetComponent<NavMeshAgent>();
+
+        // 목표 13: Enemy의 초기 속도를 Agent의 속도에 적용하고 싶다.
+        navMeshAgent.speed = moveSpeed;
     }
 
     // Update is called once per frame
@@ -161,6 +179,10 @@ public class EnemyFSM : MonoBehaviour
         // 플레이어의 공격력 만큼 hp를 감소
         hp -= damage;
 
+        // 목표 12: 내비게이션 에이전트의 이동을 멈추고 네비게이션 경로를 초기화 해준다.
+        navMeshAgent.isStopped = true;
+        navMeshAgent.ResetPath();
+
         // 목표8. 에네미의 체력이 0보다 크면 피격 상태로 전환
         if (hp > 0)
         {
@@ -206,12 +228,21 @@ public class EnemyFSM : MonoBehaviour
         // 초기 위치로 돌아온다.
         if ( distanceToOriginPos > returnDistance)
         {
-            Vector3 dir = (originPos - transform.position).normalized;
-            characterController.Move(dir * moveSpeed * Time.deltaTime);
+            //Vector3 dir = (originPos - transform.position).normalized;
+            //characterController.Move(dir * moveSpeed * Time.deltaTime);
+
+            // 목적지를 초기 위치로 설정
+            navMeshAgent.destination = originPos;
+
+            // 네비게이션으로 접근하는 최소 거리 초기화
+            navMeshAgent.stoppingDistance = 0;
         }
         // 특정 거리(0.1) 이내면, Idle 상태로 전환한다.
         else
         {
+            navMeshAgent.isStopped = true;
+            navMeshAgent.ResetPath();
+
             enemyState = EnemyState.Idle;
             print("상태 전환: Return -> Idle");
 
@@ -242,7 +273,7 @@ public class EnemyFSM : MonoBehaviour
         {
             // 그렇지 않으면 Move로 상태를 전환한다.
             enemyState = EnemyState.Move;
-            print("상태 전환: Attack -> Move"); 
+            print("상태 전환: Attack -> Move");
             currentTime = 0;
 
             animator.SetTrigger("Attack2Move");
@@ -262,23 +293,41 @@ public class EnemyFSM : MonoBehaviour
 
         // 목표5. 플레이어를 따라가다가 초기 위치에서 일정 거리를 벗어나면 초기 위치로 돌아온다.
         float distanceToOriginPos = (originPos -  transform.position).magnitude;
-        if(distanceToOriginPos >= moveDistance)
+        if(distanceToOriginPos > moveDistance)
         {
             enemyState = EnemyState.Return;
             print("상태 전환: Move -> Return");
 
             transform.forward = (originPos - transform.position).normalized;
 
-            animator.SetTrigger("Move2Idle");
+            animator.SetTrigger("Move2Return");
         }
-        else if(distanceToPlayer >= attackDistance)
+        else if(distanceToPlayer > attackDistance)
         {
-            Vector3 dir = (player.position - transform.position).normalized;
+            // 목표 14: 에이전트가 NavMeshLink에 올라고 내려가는지 확인하여 점프 애니메이션을 넣고싶다.
+            if(navMeshAgent.isOnOffMeshLink)
+            {
+                object navMeshOwner = navMeshAgent.navMeshOwner;
+                GameObject navMeshGO = (navMeshOwner as Component).gameObject;
 
-            // 플레이어를 따라간다.
-            characterController.Move(dir * moveSpeed * Time.deltaTime);
+                print(navMeshGO.name + "로 이동하고 있습니다.");
+            }
 
-            transform.forward = dir;
+            //Vector3 dir = (player.position - transform.position).normalized;
+
+            //// 플레이어를 따라간다.
+            //characterController.Move(dir * moveSpeed * Time.deltaTime);
+
+            //transform.forward = dir;
+
+            // 이동을 멈추고 경로를 초기화한다.
+            navMeshAgent.isStopped = true;
+            navMeshAgent.ResetPath();
+
+            // 목표 11. 네비게이션 에이전트의 최소 거리를 입력해 주고, 플레이어를 따라갈 수 있도록 한다. 
+            navMeshAgent.stoppingDistance = attackDistance;
+            navMeshAgent.SetDestination(player.position);
+
         }
         else
         {
