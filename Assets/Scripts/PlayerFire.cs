@@ -24,6 +24,9 @@ using UnityEngine;
 
 // 목적5: 키보드의 특정 키 입력으로 무기모드를 전환하고 싶다.
 // 필요속성5. 무기모드 열거형 변수, 줌확인 변수, Weapon Mode 텍스트
+
+// 목적6: 총을 발사할 때, 일정 시간 후에 사라지는 총구 이펙트를 활성화한다.
+// 필요속성6. 총구이펙트 배열
 public class PlayerFire : MonoBehaviour
 {
     // 필요속성: 폭탄 게임오브젝트, 발사 위치, 방향
@@ -49,6 +52,9 @@ public class PlayerFire : MonoBehaviour
     public WeaponMode weaponMode = WeaponMode.Normal;
     bool isZoomMode = false;
     public TMP_Text weaponModeTxt;
+
+    // 필요속성6. 총구이펙트 배열
+    public GameObject[] fireFlashEffs;
 
     void Awake()
     {
@@ -159,6 +165,9 @@ public class PlayerFire : MonoBehaviour
                 }
 
             }
+
+            // 총구 이펙트 실행을 위한 코루틴 시작 0.05f초에 한번씩 시작
+            StartCoroutine(ShootEffOn(0.05f));
         }
 
         // 키보드 숫자 1번을 누르면, 무기 모드를 노멀 모드로 설정한다.
@@ -179,6 +188,22 @@ public class PlayerFire : MonoBehaviour
             weaponModeTxt.text = "Sniper Mode";
 
         }
+    }
+
+    // 목적6: 총을 발사할 때, 일정 시간 후에 사라지는 총구 이펙트를 랜덤으로 활성화한다.
+    IEnumerator ShootEffOn(float duration)
+    {
+        // 일정 시간 후에 사라지는 총구 이펙트를 랜덤으로 활성화한다.
+        int randNum = Random.Range(0, fireFlashEffs.Length - 1);
+
+        // 이펙트를 랜덤으로 활성화한다.
+        fireFlashEffs[randNum].SetActive(true);
+
+        // 일정 시간 기다린다.
+        yield return new WaitForSeconds(duration);
+
+        // 일정 시간이 지나면 비활성화
+        fireFlashEffs[randNum].SetActive(false);
     }
 
 

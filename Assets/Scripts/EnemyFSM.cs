@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
@@ -43,6 +44,8 @@ using UnityEngine.UI;
 // 목표 12: 내비게이션 에이전트의 이동을 멈추고 네비게이션 경로를 초기화 해준다.
 
 // 목표 13: Enemy의 초기 속도를 Agent의 속도에 적용하고 싶다.
+
+// 목표 14: 에이전트가 NavMeshLink에 올라고 내려가는지 확인하여 점프 애니메이션을 넣고싶다.
 public class EnemyFSM : MonoBehaviour
 {
     // 필요속성: 적 상태
@@ -301,6 +304,15 @@ public class EnemyFSM : MonoBehaviour
         }
         else if(distanceToPlayer > attackDistance)
         {
+            // 목표 14: 에이전트가 NavMeshLink에 올라고 내려가는지 확인하여 점프 애니메이션을 넣고싶다.
+            if(navMeshAgent.isOnOffMeshLink)
+            {
+                object navMeshOwner = navMeshAgent.navMeshOwner;
+                GameObject navMeshGO = (navMeshOwner as Component).gameObject;
+
+                print(navMeshGO.name + "로 이동하고 있습니다.");
+            }
+
             //Vector3 dir = (player.position - transform.position).normalized;
 
             //// 플레이어를 따라간다.
