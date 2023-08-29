@@ -22,8 +22,8 @@ using UnityEngine;
 // 목적4: 이동 블랜드 트리의 파라메터 값이 0일 때, Attack Trigger를 시전하겠다.
 // 필요속성: 자식 오브젝트의 애니메이터
 
-// 목적5: 키보드의 특정 키 입력으로 무기모드를 전환하고 싶다.
-// 필요속성5. 무기모드 열거형 변수, 줌확인 변수, Weapon Mode 텍스트
+// 목적5: 키보드의 특정 키 입력으로 무기모드를 전환하고 싶다. 동시에 크로스 헤어도 교체해준다.
+// 필요속성5. 무기모드 열거형 변수, 줌확인 변수, Weapon Mode 텍스트, 크로스헤어1, 크로스헤어1, rifle 이미지, sniper 이미지, grenade 이미지
 
 // 목적6: 총을 발사할 때, 일정 시간 후에 사라지는 총구 이펙트를 활성화한다.
 // 필요속성6. 총구이펙트 배열
@@ -43,7 +43,7 @@ public class PlayerFire : MonoBehaviour
     // 필요속성: 자식 오브젝트의 애니메이터
     Animator animator;
 
-    // 필요속성5. 무기모드 열거형 변수, 줌확인 변수, Weapon Mode 텍스트
+    // 필요속성5. 무기모드 열거형 변수, 줌확인 변수, Weapon Mode 텍스트, 크로스헤어1, 크로스헤어1, rifle 이미지, sniper 이미지, grenade 이미지, 저격시 Zoom이미지
     public enum WeaponMode
     {
         Normal,
@@ -52,6 +52,12 @@ public class PlayerFire : MonoBehaviour
     public WeaponMode weaponMode = WeaponMode.Normal;
     bool isZoomMode = false;
     public TMP_Text weaponModeTxt;
+    public GameObject crossHair1Img;
+    public GameObject crossHair2Img;
+    public GameObject rifleImg;
+    public GameObject sniperImg;    
+    public GameObject grenade;
+    public GameObject zoomImg;
 
     // 필요속성6. 총구이펙트 배열
     public GameObject[] fireFlashEffs;
@@ -117,12 +123,14 @@ public class PlayerFire : MonoBehaviour
                     {
                         // 시야각 좁게 하여 확대
                         Camera.main.fieldOfView = 15;
+                        zoomImg.SetActive(true);
                         isZoomMode = true;
                     }
                     else
                     {
                         // 원상태로 복구
                         Camera.main.fieldOfView = 60;
+                        zoomImg.SetActive(false);
                         isZoomMode = false;
                     }
                     break;
@@ -179,6 +187,12 @@ public class PlayerFire : MonoBehaviour
 
             // 카메라 FoV를 처음 상태로 바꿔준다.
             Camera.main.fieldOfView = 60;
+
+            crossHair1Img.SetActive(true);
+            crossHair2Img.SetActive(false);
+            rifleImg.SetActive(true);
+            sniperImg.SetActive(false);
+            grenade.SetActive(true);
         }
         // 키보드 숫자 2번을 누르면, 무기 모드를 저격 모드로 설정한다.
         else if(Input.GetKeyDown(KeyCode.Alpha2))
@@ -187,6 +201,11 @@ public class PlayerFire : MonoBehaviour
 
             weaponModeTxt.text = "Sniper Mode";
 
+            crossHair1Img.SetActive(false);
+            crossHair2Img.SetActive(true);
+            rifleImg.SetActive(false);
+            sniperImg.SetActive(true);
+            grenade.SetActive(false);
         }
     }
 
