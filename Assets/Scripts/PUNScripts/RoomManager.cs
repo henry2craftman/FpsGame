@@ -7,10 +7,21 @@ using UnityEngine.SceneManagement;
 
 // 목적: 버튼을 눌러서 방의 정보를 보여주고, Leave room 버튼을 눌러서 방을 나갈 수 있다.
 // 필요속성: 방 정보 Text
+
+// 목적2: Photon view를 가진 플레이어를 생성한다.
+// 필요속성2: PhotonView 플레이어
 public class RoomManager : MonoBehaviourPunCallbacks
 {
     // 필요속성: 방 정보 Text
     public TMP_Text infoText;
+
+    // 필요속성2: PhotonView 플레이어
+    public PhotonView playerPrefab;
+
+    private void Start()
+    {
+
+    }
 
     // 방의 정보를 보여주고 싶다.
     public void ShowRoomInfo()
@@ -30,6 +41,9 @@ public class RoomManager : MonoBehaviourPunCallbacks
 
             infoText.text = string.Format("Room: {0}\nPlayer number: {1}\nMax player number: {2}\n{3}", roomName, playerCnt, maxPlayersCnt, playerNames);
         }
+
+        // 목적2: Photon view를 가진 플레이어를 생성한다.
+        PhotonNetwork.Instantiate(playerPrefab.name, Vector3.zero, Quaternion.identity);
     }
 
     // Leave room 버튼을 눌러서 방을 나갈 수 있다.
