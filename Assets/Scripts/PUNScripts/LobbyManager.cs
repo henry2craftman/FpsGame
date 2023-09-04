@@ -16,7 +16,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     public int maxPlayerNum = 3;
     public TMP_Text logText;
     public string tempTxt;
-    public int sceneNumber = 2;
+    public string sceneName = "LoadingScene";
+    public GameObject mainGameManager;
 
     string updateTxt(out string _tempTxt, string input)
     {
@@ -43,7 +44,17 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
         logText.text = updateTxt(out tempTxt, "enter success\n");
 
-        SceneManager.LoadScene(sceneNumber);
+        SceneManager.LoadScene(sceneName);
+    }
+
+    // 방을 만든 사람만(방장만) MainGameManager를 가지고 있다.
+    public override void OnCreatedRoom()
+    {
+        base.OnCreatedRoom();
+
+        // MainGameManager를 다음 씬으로 가져가겠다.
+        DontDestroyOnLoad(mainGameManager);
+        mainGameManager.SetActive(true);
     }
 
     // 방에 개설 실패시 호출

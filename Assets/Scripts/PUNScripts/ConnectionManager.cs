@@ -57,4 +57,11 @@ public class ConnectionManager : MonoBehaviourPunCallbacks
         // LobbyScene 으로 이동
         SceneManager.LoadScene("LobbyScene");
     }
+
+
+    // LoadingScene을 Load한다.
+    public void EnterSoloPlayMode()
+    {
+        SceneManager.LoadScene("LoadingScene");
+    }
 }

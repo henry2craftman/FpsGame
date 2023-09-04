@@ -1,5 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Photon.Pun;
+using Photon.Pun.UtilityScripts;
+using Photon.Realtime;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -19,6 +22,11 @@ using UnityEngine.SceneManagement;
 // 필요속성5: OptionUI 게임오브젝트, 일시정지 상태
 
 // 목적6: 게임 오버시 Retry와 Quit 버튼을 활성화한다.
+
+// 목적7: 게임이 시작되면 Player를 PhotonView를 사용하여 생성한다.
+// 필요속성: Player PhotonView
+
+// 목적8: Client로서 접속이 되면(GameManager가 태어나면) PhotonNetwork에 접속한 Player들을 확인해서 내 번호를 정한다.
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
@@ -44,11 +52,25 @@ public class GameManager : MonoBehaviour
     // 필요속성5: OptionUI 게임오브젝트, 일시정지 상태
     public GameObject optionUI;
 
+    // 필요속성: Player PhotonView
+    public PhotonView playerPrefab;
+    private int myPlayerNumber = 0;
+
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
+        }
+
+        // 목적8: Client로서 접속이 되면(GameManager가 태어나면) PhotonNetwork에 접속한 Player들을 확인해서 내 번호를 정한다.
+        Player[] players = PhotonNetwork.PlayerList;
+        foreach(var p in players)
+        {
+            if(p != PhotonNetwork.LocalPlayer)
+            {
+                myPlayerNumber++;
+            }
         }
     }
 
@@ -68,8 +90,13 @@ public class GameManager : MonoBehaviour
     // 목적2: 2초 후 게임이 Ready 상태에서 Start 상태(초록색)로 변경되며 게임이 시작된다. 
     IEnumerator GameStart()
     {
-        // 2초를 기다린다.
-        yield return new WaitForSeconds(2);
+        while (!MainGameManager.Instance.isGameStarted)
+        {
+            yield return null;
+        }
+
+        // 목적7: 게임이 시작되면 Player를 PhotonView를 사용하여 생성한다.
+        PhotonNetwork.Instantiate(playerPrefab.name, MainGameManager.Instance.spawnPoints[myPlayerNumber].position, Quaternion.identity);
 
         stateText.text = "Game Start";
         stateText.color = new Color32(0, 255, 0, 255);

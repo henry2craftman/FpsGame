@@ -13,7 +13,7 @@ using UnityEngine.UI;
 public class LoadingNextScene : MonoBehaviour
 {
     // 필요속성: 다음 진행할 씬 번호
-    public int sceneNumber = 2;
+    public string sceneName = "InGameScene";
 
     // 필요속성: 로딩 슬라이더, 로딩텍스트
     public Slider loadingSlider;
@@ -22,14 +22,14 @@ public class LoadingNextScene : MonoBehaviour
     private void Start()
     {
         // 비동기 씬을 코루틴 함수로 로드한다.
-        StartCoroutine(AsyncNextScene(sceneNumber));
+        StartCoroutine(AsyncNextScene(sceneName));
     }
 
     // 목표: 다음 씬을 비동기 방식으로 로드하고 싶다.
-    IEnumerator AsyncNextScene(int num)
+    IEnumerator AsyncNextScene(string name)
     {
         // 지정된 씬을 비동기 방식으로 만들고 싶다.
-        AsyncOperation asyncOperation = SceneManager.LoadSceneAsync(num);
+        AsyncOperation asyncOperation = SceneManager.LoadSceneAsync(name);
 
         // 씬이 화면에 보이지 않게 하고 싶다.
         asyncOperation.allowSceneActivation = false;
@@ -45,6 +45,8 @@ public class LoadingNextScene : MonoBehaviour
             {
                 // 씬이 화면에 보이게 하고 싶다.
                 asyncOperation.allowSceneActivation = true;
+
+                MainGameManager.Instance.StartTimer();
             }
 
             yield return null;
