@@ -49,6 +49,7 @@ public class PunPlayerMove : MonoBehaviour, IPunObservable
 
             if(Input.GetKeyDown(KeyCode.Space))
             {
+                // 클론에게 보내는 메시지
                 pv.RPC("CreateSphere", RpcTarget.All, $"I'm Ready! - {DateTime.Now}");
                 isFiring = true;
             }
@@ -65,10 +66,11 @@ public class PunPlayerMove : MonoBehaviour, IPunObservable
             transform.position = Vector3.Lerp(transform.position, currPos, Time.deltaTime * 20f);
             transform.rotation = Quaternion.Lerp(transform.rotation, currRot, Time.deltaTime * 20f);
 
-            RoomManager.Instance.infoText.text = currPos.ToString();
+            //RoomManager.Instance.infoText.text = currPos.ToString();
         }
     }
 
+    // 클론에게 보내는 메시지
     [PunRPC]
     void CreateSphere(string info)
     {
@@ -79,6 +81,7 @@ public class PunPlayerMove : MonoBehaviour, IPunObservable
         RoomManager.Instance.infoText.text = info;
     }
 
+
     //클론이 통신을 받는 변수 설정
     private Vector3 currPos;
     private Quaternion currRot;
@@ -87,11 +90,13 @@ public class PunPlayerMove : MonoBehaviour, IPunObservable
     {
         if (stream.IsWriting)
         {
+            stream.SendNext(RoomManager.isReady);
             stream.SendNext(transform.position);
             stream.SendNext(transform.rotation);
         }
         else
         {
+            RoomManager.isReady = (int)stream.ReceiveNext();
             this.currPos = (Vector3)stream.ReceiveNext();
             this.currRot = (Quaternion)stream.ReceiveNext();
         }

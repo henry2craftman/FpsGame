@@ -1,4 +1,5 @@
-﻿using Photon.Pun;
+﻿using System;
+using Photon.Pun;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -17,7 +18,8 @@ public class RoomManager : MonoBehaviourPunCallbacks
     // 필요속성2: PhotonView 플레이어
     public PhotonView playerPrefab;
 
-    public bool isReady = false;
+    public static int isReady = 0;
+    PhotonView pv;
 
     private void Awake()
     {
@@ -28,8 +30,11 @@ public class RoomManager : MonoBehaviourPunCallbacks
         PhotonNetwork.SendRate = 30;
         print("PhotonNetwork.SerializationRate:" + PhotonNetwork.SerializationRate);
         PhotonNetwork.SerializationRate = 30;
+
+        pv = GetComponent<PhotonView>();
     }
 
+    public string readyMsg;
     // 방의 정보를 보여주고 싶다.
     public void ShowRoomInfo()
     {
@@ -47,10 +52,23 @@ public class RoomManager : MonoBehaviourPunCallbacks
             }
 
             infoText.text = string.Format("Room: {0}\nPlayer number: {1}\nMax player number: {2}\n{3}", roomName, playerCnt, maxPlayersCnt, playerNames);
+
+
+            readyMsg += $"Player{isReady++}: I'm Ready!\n";
+            infoText.text = readyMsg;
+            pv.RPC("SendMessage", RpcTarget.All, readyMsg);
+
         }
 
         // 목적2: Photon view를 가진 플레이어를 생성한다.
         PhotonNetwork.Instantiate(playerPrefab.name, Vector3.zero, Quaternion.identity);
+    }
+
+
+    [PunRPC]
+    void SendMessage(string str)
+    {
+        infoText.text = str;
     }
 
     // Leave room 버튼을 눌러서 방을 나갈 수 있다.
