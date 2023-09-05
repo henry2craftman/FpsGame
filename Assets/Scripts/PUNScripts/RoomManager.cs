@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Photon.Pun;
+﻿using Photon.Pun;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -12,15 +10,24 @@ using UnityEngine.SceneManagement;
 // 필요속성2: PhotonView 플레이어
 public class RoomManager : MonoBehaviourPunCallbacks
 {
+    public static RoomManager Instance;
     // 필요속성: 방 정보 Text
     public TMP_Text infoText;
 
     // 필요속성2: PhotonView 플레이어
     public PhotonView playerPrefab;
 
-    private void Start()
-    {
+    public bool isReady = false;
 
+    private void Awake()
+    {
+        if (Instance == null)
+            Instance = this;
+
+        print("PhotonNetwork.SendRate:" + PhotonNetwork.SendRate);
+        PhotonNetwork.SendRate = 30;
+        print("PhotonNetwork.SerializationRate:" + PhotonNetwork.SerializationRate);
+        PhotonNetwork.SerializationRate = 30;
     }
 
     // 방의 정보를 보여주고 싶다.

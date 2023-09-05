@@ -1,8 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Photon.Pun;
+﻿using Photon.Pun;
 using TMPro;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 
 // 목적: Photon 게임 서버에 연결한다.
@@ -19,7 +16,11 @@ public class ConnectionManager : MonoBehaviourPunCallbacks
     }
 
     // 목적: Photon 게임 서버에 연결한다.
-    public void Connect() => PhotonNetwork.ConnectUsingSettings();
+    public void Connect()
+    {
+        PhotonNetwork.AutomaticallySyncScene = true;
+        PhotonNetwork.ConnectUsingSettings();
+    }
 
     // 포톤 서버 연결시 호출됨
     public override void OnConnected()
