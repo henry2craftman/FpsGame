@@ -1,0 +1,39 @@
+{
+   "stages":[
+      {
+         "stageNumber":1,
+         "monsters":[
+            {
+               "name":"Goblin",
+                "hp": 50,
+                "attackPower": 50,
+                "speed": 50
+
+            },
+            {
+                "name": "Orc",
+                "hp": 80,
+                "attackPower": 80,
+                "speed": 80
+            }
+         ]
+      },
+      {
+         "stageNumber":2,
+         "monsters":[
+            {
+                "name": "Skeleton",
+                "hp": 60,
+                "attackPower": 60,
+                "speed": 60
+            },
+            {
+                "name": "Zombie",
+                "hp": 70,
+                "attackPower": 70,
+                "speed": 70
+            }
+         ]
+      }
+   ]
+}
