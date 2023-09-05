@@ -13,7 +13,6 @@ public class CamRotate : MonoBehaviour
     public float speed = 10f;
     float mx = 0;
     float my = 0;
-    
 
     // Update is called once per frame
     void Update()

@@ -6,6 +6,12 @@ public class PlayerRotate : MonoBehaviour
 {
     // 필요속성: 마우스 입력 X, Y, 속도
     public float speed = 200f;
+    public GameManager gameManager;
+
+    private void Start()
+    {
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+    }
 
     // Update is called once per frame
     void Update()

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Photon.Pun;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
@@ -33,7 +34,7 @@ using UnityEngine.UI;
 
 // 목적8: 플레이어의 자식 중 모델링 오브젝트에 있는 애니메이터 컴포넌트를 가져와서 블랜딩 트리를 호출하고 싶다.
 // 필요속성: 모델링 오브젝트의 애니메이터
-public class PlayerMove : MonoBehaviour
+public class PlayerMove : MonoBehaviour, IPunObservable
 {
     // 필요속성: 이동속도
     public float speed = 10;
@@ -62,6 +63,8 @@ public class PlayerMove : MonoBehaviour
     // 필요속성: 모델링 오브젝트의 애니메이터
     Animator animator;
 
+    PhotonView photonView;
+
     private void Start()
     {
         characterController = GetComponent<CharacterController>();
@@ -69,62 +72,75 @@ public class PlayerMove : MonoBehaviour
         maxHP = hp;
 
         animator = GetComponentInChildren<Animator>();
+
+        photonView = GetComponent<PhotonView>();
+
+        if (!photonView.IsMine)
+        {
+            this.gameObject.GetComponentInChildren<AudioListener>().enabled = false;
+            this.gameObject.GetComponentInChildren<Camera>().enabled = false;
+        }
     }
 
 
     // Update is called once per frame
     void Update()
     {
-        // 목적4. 현재 플레이어 hp(%)를 hp 슬라이더에 적용한다.
-        hpSlider.value = (float)hp / maxHP;
-
-        // 목적7: GameManager가 Ready 상태일 때는 플레이어, 적이 움직일 수 없도록 한다.
-        if (GameManager.Instance.state != GameManager.GameState.Start)
-            return;
-
-
-        // 순서1. 사용자의 입력을 받는다.
-        float h = Input.GetAxis("Horizontal");
-        float v = Input.GetAxis("Vertical");
-
-        // 만약 점프 중이었다면 점프 전 상태로 초기화 하고 싶다.
-        if(isJumping && characterController.collisionFlags == CollisionFlags.Below)
+        if (photonView.IsMine)
         {
-            isJumping = false;
+            // 목적4. 현재 플레이어 hp(%)를 hp 슬라이더에 적용한다.
+            hpSlider.value = (float)hp / maxHP;
 
-            yVelocity = 0;
+            // 목적7: GameManager가 Ready 상태일 때는 플레이어, 적이 움직일 수 없도록 한다.
+            if (GameManager.Instance.state != GameManager.GameState.Start)
+                return;
+
+            // 순서1. 사용자의 입력을 받는다.
+            float h = Input.GetAxis("Horizontal");
+            float v = Input.GetAxis("Vertical");
+
+            // 만약 점프 중이었다면 점프 전 상태로 초기화 하고 싶다.
+            if (isJumping && characterController.collisionFlags == CollisionFlags.Below)
+            {
+                isJumping = false;
+
+                yVelocity = 0;
+            }
+            // 바닥에 닿아 있을 때, 수직 속도를 초기화 하고 싶다.
+            else if (characterController.collisionFlags == CollisionFlags.Below)
+            {
+                yVelocity = 0;
+            }
+
+            if (Input.GetButtonDown("Jump") && !isJumping)
+            {
+                yVelocity = jumpPower;
+                isJumping = true;
+            }
+
+            // 순서2. 이동 방향을 설정한다.
+            Vector3 dir = new Vector3(h, 0, v);
+            dir = Camera.main.transform.TransformDirection(dir);
+
+            // 목적8: 플레이어의 자식 중 모델링 오브젝트에 있는 애니메이터 컴포넌트를 가져와서 블랜딩 트리를 호출하고 싶다.
+            animator.SetFloat("MoveMotion", dir.magnitude);
+
+            // 2-1. 캐릭터 수직 속도에 중력을 적용하고 싶다.
+            yVelocity += gravity * Time.deltaTime;
+            dir.y = yVelocity;
+
+
+            // 순서3. 이동 속도에 따라 나를 이동시킨다.
+            //transform.position += dir * speed * Time.deltaTime;
+
+            // 2-2. 캐릭터 컨트롤러로 나를 이동시키고 싶다.
+            characterController.Move(dir * speed * Time.deltaTime);
         }
-        // 바닥에 닿아 있을 때, 수직 속도를 초기화 하고 싶다.
-        else if(characterController.collisionFlags == CollisionFlags.Below)
+        else
         {
-            yVelocity = 0;
+            transform.position = setPos;
+            transform.rotation = setRot;
         }
-
-        if(Input.GetButtonDown("Jump") && !isJumping)
-        {
-            yVelocity = jumpPower;
-            isJumping = true;
-        }
-
-        // 순서2. 이동 방향을 설정한다.
-        Vector3 dir = new Vector3(h, 0, v);
-        dir = Camera.main.transform.TransformDirection(dir);
-
-        // 목적8: 플레이어의 자식 중 모델링 오브젝트에 있는 애니메이터 컴포넌트를 가져와서 블랜딩 트리를 호출하고 싶다.
-        animator.SetFloat("MoveMotion", dir.magnitude);
-
-        // 2-1. 캐릭터 수직 속도에 중력을 적용하고 싶다.
-        yVelocity += gravity * Time.deltaTime;
-        dir.y = yVelocity;
-
-
-        // 순서3. 이동 속도에 따라 나를 이동시킨다.
-        //transform.position += dir * speed * Time.deltaTime;
-
-        // 2-2. 캐릭터 컨트롤러로 나를 이동시키고 싶다.
-        characterController.Move(dir * speed * Time.deltaTime);
-
-
     }
 
     // 목적3: 플레이어가 피격을 당하면 hp를 damage만큼 깎는다.
@@ -180,5 +196,22 @@ public class PlayerMove : MonoBehaviour
 
         // hitImage 비활성화
         hitImage.gameObject.SetActive(false);
+    }
+
+
+    Vector3 setPos;
+    Quaternion setRot;
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if(stream.IsWriting)
+        {
+            stream.SendNext(transform.position);
+            stream.SendNext(transform.rotation);
+        }
+        else if(stream.IsWriting)
+        {
+            setPos = (Vector3)stream.ReceiveNext();
+            setRot = (Quaternion)stream.ReceiveNext();
+        }
     }
 }

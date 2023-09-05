@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Photon.Pun;
 
 //목적1: SpawnPoint에 Player를 위치시킨다.
 // 필요속성: SpawnPoints 배열
@@ -18,8 +19,15 @@ public class MainGameManager : MonoBehaviour
 
     // 필요속성: 특정시간, 현재시간, 게임시작명령 flag
     public float gameStartTime = 10f;
-    float currentTime = 0f;
     public bool isGameStarted = false;
+
+    [PunRPC]
+    public void GetGameState(out bool _isGameStarted)
+    {
+        _isGameStarted = isGameStarted;
+
+        print(System.Reflection.MethodBase.GetCurrentMethod().Name);
+    }
 
     private void Awake()
     {
@@ -58,6 +66,10 @@ public class MainGameManager : MonoBehaviour
     // MainGameManager의 타이머 코루틴을 시작하는 함수
     public void StartTimer()
     {
-        StartCoroutine(TimerCoroutine());
+        print(System.Reflection.MethodBase.GetCurrentMethod().Name);
+        if (PhotonNetwork.IsMasterClient)
+        {
+            StartCoroutine(TimerCoroutine());
+        }
     }
 }

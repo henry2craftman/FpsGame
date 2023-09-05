@@ -19,8 +19,11 @@ public class ConnectionManager : MonoBehaviourPunCallbacks
     }
 
     // 목적: Photon 게임 서버에 연결한다.
-    public void Connect() => PhotonNetwork.ConnectUsingSettings();
-
+    public void Connect()
+    {
+        PhotonNetwork.AutomaticallySyncScene = true;
+        PhotonNetwork.ConnectUsingSettings();
+    }
     // 포톤 서버 연결시 호출됨
     public override void OnConnected()
     {

@@ -87,18 +87,18 @@ public class JSONExample : MonoBehaviour
 
 
         // NewtonJson 예시
-        string newtonJson = JsonConvert.SerializeObject(json);
-        JObject keyValuePairs = JObject.Parse(newtonJson);
-        JObject stageHead = (JObject)keyValuePairs["stages"];
-        if (stageHead.ContainsKey("monsters"))
-        {
-            JObject monsters = (JObject)stageHead["monsters"];
+        //string newtonJson = JsonConvert.SerializeObject(json);
+        //JObject keyValuePairs = JObject.Parse(newtonJson);
+        //JObject stageHead = (JObject)keyValuePairs["stages"];
+        //if (stageHead.ContainsKey("monsters"))
+        //{
+        //    JObject monsters = (JObject)stageHead["monsters"];
 
-            if (monsters["name"].ToString() == "Goblin")
-            {
-                monsters["hp"] = 10;
-            }
-        }
+        //    if (monsters["name"].ToString() == "Goblin")
+        //    {
+        //        monsters["hp"] = 10;
+        //    }
+        //}
 
         //print(json);
 

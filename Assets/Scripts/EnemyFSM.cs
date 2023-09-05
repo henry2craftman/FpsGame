@@ -99,7 +99,7 @@ public class EnemyFSM : MonoBehaviour
     {
         enemyState = EnemyState.Idle;
 
-        player = GameObject.Find("Player").transform;
+        player = GameManager.Instance.player.transform;
 
         characterController = GetComponent<CharacterController>();
 

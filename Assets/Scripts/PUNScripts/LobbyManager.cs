@@ -19,6 +19,12 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     public string sceneName = "LoadingScene";
     public GameObject mainGameManager;
 
+    //private void Start()
+    //{
+    //    // MainGameManager를 다음 씬으로 가져가겠다.
+    //    DontDestroyOnLoad(mainGameManager);
+    //}
+
     string updateTxt(out string _tempTxt, string input)
     {
         _tempTxt = input;
@@ -51,10 +57,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     public override void OnCreatedRoom()
     {
         base.OnCreatedRoom();
-
-        // MainGameManager를 다음 씬으로 가져가겠다.
-        DontDestroyOnLoad(mainGameManager);
-        mainGameManager.SetActive(true);
+        print("방 생성 완료");
     }
 
     // 방에 개설 실패시 호출

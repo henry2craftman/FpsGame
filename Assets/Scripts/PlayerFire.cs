@@ -1,7 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Photon.Pun;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 // 목적: 마우스 오른쪽 버튼을 눌러 폭탄을 특정 방향으로 발사하고 싶다.
@@ -62,10 +64,7 @@ public class PlayerFire : MonoBehaviour
     // 필요속성6. 총구이펙트 배열
     public GameObject[] fireFlashEffs;
 
-    void Awake()
-    {
-        playerFire = GameObject.Find("Player").GetComponent<PlayerFire>();
-    }
+    PhotonView photonView;
 
     private void Start()
     {
@@ -85,6 +84,8 @@ public class PlayerFire : MonoBehaviour
 
         //quotient = Divide(a, b, out remainder);
         //print(string.Format("몫: {0}, 나머지: {1}", quotient, remainder));
+        photonView = GetComponent<PhotonView>();
+
     }
     int remainder;
 
@@ -93,6 +94,9 @@ public class PlayerFire : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!photonView.IsMine)
+            return;
+
         // 목적7: GameManager가 Ready 상태일 때는 플레이어, 적이 움직일 수 없도록 한다.
         if (GameManager.Instance.state != GameManager.GameState.Start)
             return;

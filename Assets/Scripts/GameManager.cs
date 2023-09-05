@@ -4,6 +4,7 @@ using Photon.Pun;
 using Photon.Pun.UtilityScripts;
 using Photon.Realtime;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -27,9 +28,10 @@ using UnityEngine.SceneManagement;
 // 필요속성: Player PhotonView
 
 // 목적8: Client로서 접속이 되면(GameManager가 태어나면) PhotonNetwork에 접속한 Player들을 확인해서 내 번호를 정한다.
-public class GameManager : MonoBehaviour
+public class GameManager : MonoBehaviourPunCallbacks
 {
     public static GameManager Instance;
+    public static int isGameStarted = 0;
 
     // 필요속성: 게임상태 열거형 변수, TextUI
     public enum GameState
@@ -44,7 +46,7 @@ public class GameManager : MonoBehaviour
     public TMP_Text stateText;
 
     // 필요속성3: hp가 들어있는 playerMove
-    PlayerMove player;
+    public PlayerMove player;
 
     // 필요속성4: 플레이어의 애니메이터 컴포넌트
     Animator animator;
@@ -56,47 +58,93 @@ public class GameManager : MonoBehaviour
     public PhotonView playerPrefab;
     private int myPlayerNumber = 0;
 
+    // 게임시작시 활성화 할 적그룹
+    public GameObject grpEnemies;
+
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
         }
-
-        // 목적8: Client로서 접속이 되면(GameManager가 태어나면) PhotonNetwork에 접속한 Player들을 확인해서 내 번호를 정한다.
-        Player[] players = PhotonNetwork.PlayerList;
-        foreach(var p in players)
-        {
-            if(p != PhotonNetwork.LocalPlayer)
-            {
-                myPlayerNumber++;
-            }
-        }
     }
 
     // Start is called before the first frame update
     void Start()
     {
+        // 목적8: Client로서 접속이 되면(GameManager가 태어나면) PhotonNetwork에 접속한 Player들을 확인해서 내 번호를 정한다.
+        Player[] players = PhotonNetwork.PlayerList;
+        foreach (var p in players)
+        {
+            if (p != PhotonNetwork.LocalPlayer)
+            {
+                myPlayerNumber++;
+            }
+
+            GetComponent<PhotonView>().RPC("UpdateJoinedClient", RpcTarget.All);
+        }
+
         stateText.text = "Ready";
         stateText.color = new Color32(255, 185, 0, 255);
 
+        SetSpawnPoints();
+
         StartCoroutine(GameStart());
+    }
 
-        player = GameObject.Find("Player").GetComponent<PlayerMove>();
+    [PunRPC]
+    void UpdateJoinedClient()
+    {
+        isGameStarted = 1 << myPlayerNumber; // 00, 10, 110, 1110
+        print(isGameStarted);
+    }
 
-        animator = player.GetComponentInChildren<Animator>();
+    [PunRPC]
+    void ChatMessage(string a, string b)
+    {
+        Debug.Log(string.Format("ChatMessage {0} {1}", a, b));
+    }
+
+    void Update()
+    {
+        print(isGameStarted);
+    }
+
+    // 필요속성: SpawnPoints 배열
+    public Transform[] spawnPoints;
+    void SetSpawnPoints()
+    {
+        Transform spawnPointsParent = GameObject.Find("Grp_SpawnPoints").transform;
+
+        spawnPoints = new Transform[spawnPointsParent.childCount];
+
+        for (int i = 0; i < spawnPointsParent.childCount; i++)
+        {
+            spawnPoints[i] = spawnPointsParent.GetChild(i);
+        }
     }
 
     // 목적2: 2초 후 게임이 Ready 상태에서 Start 상태(초록색)로 변경되며 게임이 시작된다. 
     IEnumerator GameStart()
     {
-        while (!MainGameManager.Instance.isGameStarted)
-        {
-            yield return null;
-        }
+        GetComponent<PhotonView>().RPC("UpdateJoinedClient", RpcTarget.All);
+        GetComponent<PhotonView>().RPC("ChatMessage", RpcTarget.All, "jup", "and jup!");
+
+        // <중요> 방에 있는 상태가 네트워크에서 확인 되면 
+        yield return new WaitUntil(() => PhotonNetwork.InRoom && isGameStarted == 2);
+        
 
         // 목적7: 게임이 시작되면 Player를 PhotonView를 사용하여 생성한다.
-        PhotonNetwork.Instantiate(playerPrefab.name, MainGameManager.Instance.spawnPoints[myPlayerNumber].position, Quaternion.identity);
+        GameObject playerObj = PhotonNetwork.Instantiate(playerPrefab.name, spawnPoints[myPlayerNumber].position, Quaternion.identity);
+        print(playerObj.name);
+
+
+        // 게임이 시작되면 플레이어를 찾고 애니메이터를 가져온다.
+        player = playerObj.GetComponent<PlayerMove>();
+        animator = player.GetComponentInChildren<Animator>();
+
+        grpEnemies.SetActive(true);
+
 
         stateText.text = "Game Start";
         stateText.color = new Color32(0, 255, 0, 255);
@@ -114,6 +162,8 @@ public class GameManager : MonoBehaviour
     // 목적3: 플레이어의 hp가 0보다 작으면 상태텍스트와 상태를 GameOver로 바꿔주고
     void CheckGameOver()
     {
+        if(player == null) { return; }
+
         if(player.hp <= 0)
         {
             // 목적4: 플레이어의 hp가 0 이하라면, 플레이어의 애니메이션을 멈춘다.
@@ -142,11 +192,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        CheckGameOver();
-    }
 
     // 목적5: Option 버튼을 누르면 Option UI가 켜진다. 동시에 게임 속도를 조절한다(0 or 1)
     // Option 화면 켜기
