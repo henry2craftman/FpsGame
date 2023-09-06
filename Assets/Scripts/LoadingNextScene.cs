@@ -46,17 +46,6 @@ public class LoadingNextScene : MonoBehaviour
             {
                 // 씬이 화면에 보이게 하고 싶다.
                 asyncOperation.allowSceneActivation = true;
-
-                //try
-                //{
-                //    MaingameManager.StartTimer();
-
-                //}
-                //catch(Exception e)
-                //{
-                //    print(e);
-                //}
-
             }
 
             yield return null;

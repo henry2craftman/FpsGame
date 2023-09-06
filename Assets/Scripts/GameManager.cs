@@ -31,7 +31,6 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviourPunCallbacks
 {
     public static GameManager Instance;
-    public static int isGameStarted = 0;
 
     // 필요속성: 게임상태 열거형 변수, TextUI
     public enum GameState
@@ -80,8 +79,6 @@ public class GameManager : MonoBehaviourPunCallbacks
             {
                 myPlayerNumber++;
             }
-
-            GetComponent<PhotonView>().RPC("UpdateJoinedClient", RpcTarget.All);
         }
 
         stateText.text = "Ready";
@@ -90,24 +87,6 @@ public class GameManager : MonoBehaviourPunCallbacks
         SetSpawnPoints();
 
         StartCoroutine(GameStart());
-    }
-
-    [PunRPC]
-    void UpdateJoinedClient()
-    {
-        isGameStarted = 1 << myPlayerNumber; // 00, 10, 110, 1110
-        print(isGameStarted);
-    }
-
-    [PunRPC]
-    void ChatMessage(string a, string b)
-    {
-        Debug.Log(string.Format("ChatMessage {0} {1}", a, b));
-    }
-
-    void Update()
-    {
-        print(isGameStarted);
     }
 
     // 필요속성: SpawnPoints 배열
@@ -127,11 +106,8 @@ public class GameManager : MonoBehaviourPunCallbacks
     // 목적2: 2초 후 게임이 Ready 상태에서 Start 상태(초록색)로 변경되며 게임이 시작된다. 
     IEnumerator GameStart()
     {
-        GetComponent<PhotonView>().RPC("UpdateJoinedClient", RpcTarget.All);
-        GetComponent<PhotonView>().RPC("ChatMessage", RpcTarget.All, "jup", "and jup!");
-
         // <중요> 방에 있는 상태가 네트워크에서 확인 되면 
-        yield return new WaitUntil(() => PhotonNetwork.InRoom && isGameStarted == 2);
+        yield return new WaitUntil(() => PhotonNetwork.InRoom);
         
 
         // 목적7: 게임이 시작되면 Player를 PhotonView를 사용하여 생성한다.
@@ -144,7 +120,6 @@ public class GameManager : MonoBehaviourPunCallbacks
         animator = player.GetComponentInChildren<Animator>();
 
         grpEnemies.SetActive(true);
-
 
         stateText.text = "Game Start";
         stateText.color = new Color32(0, 255, 0, 255);

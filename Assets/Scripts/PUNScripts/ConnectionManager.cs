@@ -22,6 +22,10 @@ public class ConnectionManager : MonoBehaviourPunCallbacks
     public void Connect()
     {
         PhotonNetwork.AutomaticallySyncScene = true;
+
+        PhotonNetwork.SendRate = 30; // Default: 30
+        PhotonNetwork.SerializationRate = 30; // Default: 10
+
         PhotonNetwork.ConnectUsingSettings();
     }
     // 포톤 서버 연결시 호출됨

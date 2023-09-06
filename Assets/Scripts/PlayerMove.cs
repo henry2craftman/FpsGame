@@ -138,8 +138,8 @@ public class PlayerMove : MonoBehaviour, IPunObservable
         }
         else
         {
-            transform.position = setPos;
-            transform.rotation = setRot;
+            transform.position = receivedPos;
+            transform.rotation = receivedRot;
         }
     }
 
@@ -199,19 +199,41 @@ public class PlayerMove : MonoBehaviour, IPunObservable
     }
 
 
-    Vector3 setPos;
-    Quaternion setRot;
+    Vector3 receivedPos;
+    Quaternion receivedRot;
+
+    // 목적: 네트워크의 동기화를 위해 PhotonStream(플레이어의 position, rotation)을 보내고 받는다.
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
+        // 상대 클라이언트 쪽에 있는 내 플레이어의 정보를 보내는 부분
         if(stream.IsWriting)
         {
             stream.SendNext(transform.position);
             stream.SendNext(transform.rotation);
         }
-        else if(stream.IsWriting)
+
+        // 상대 클라이언트로 부터 상대 플레이어의 정보를 받는 부분 
+        else
         {
-            setPos = (Vector3)stream.ReceiveNext();
-            setRot = (Quaternion)stream.ReceiveNext();
+            receivedPos = (Vector3)stream.ReceiveNext();
+            receivedRot = (Quaternion)stream.ReceiveNext();
         }
     }
+
+
+    //Vector3 setPos;
+    //Quaternion setRot;
+    //public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    //{
+    //    if(stream.IsWriting)
+    //    {
+    //        stream.SendNext(transform.position);
+    //        stream.SendNext(transform.rotation);
+    //    }
+    //    else if(stream.IsWriting)
+    //    {
+    //        setPos = (Vector3)stream.ReceiveNext();
+    //        setRot = (Quaternion)stream.ReceiveNext();
+    //    }
+    //}
 }

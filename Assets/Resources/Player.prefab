@@ -794,7 +794,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 500
-  gameManager: {fileID: 0}
 --- !u!114 &2956674071771235389
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1372,7 +1371,6 @@ GameObject:
   - component: {fileID: 587435671132697872}
   - component: {fileID: 4342641832564428553}
   - component: {fileID: 9118740655710026977}
-  - component: {fileID: 8013215311358948523}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -1483,7 +1481,6 @@ MonoBehaviour:
   hpSlider: {fileID: 3284921945286407326}
   hitImage: {fileID: 4909192511851543436}
   hitImageEndTime: 3
-  gameManager: {fileID: 0}
 --- !u!143 &587435671132697872
 CharacterController:
   m_ObjectHideFlags: 0
@@ -1540,7 +1537,6 @@ MonoBehaviour:
   - {fileID: 5216506277008158566}
   - {fileID: 855921731590456921}
   - {fileID: 8910712919282806359}
-  gameManager: {fileID: 0}
   weaponPower: 2
 --- !u!114 &9118740655710026977
 MonoBehaviour:
@@ -1562,43 +1558,10 @@ MonoBehaviour:
   observableSearch: 2
   ObservedComponents:
   - {fileID: 1823404411261409684}
-  - {fileID: 8013215311358948523}
+  - {fileID: 0}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
---- !u!114 &8013215311358948523
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8769276640652096210}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8efc6b1d64977384eb3405357896c656, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_PositionModel:
-    SynchronizeEnabled: 1
-    TeleportEnabled: 1
-    TeleportIfDistanceGreaterThan: 3
-    InterpolateOption: 2
-    InterpolateMoveTowardsSpeed: 1
-    InterpolateLerpSpeed: 1
-    ExtrapolateOption: 0
-    ExtrapolateSpeed: 1
-    ExtrapolateIncludingRoundTripTime: 1
-    ExtrapolateNumberOfStoredPositions: 1
-  m_RotationModel:
-    SynchronizeEnabled: 1
-    InterpolateOption: 1
-    InterpolateRotateTowardsSpeed: 180
-    InterpolateLerpSpeed: 5
-  m_ScaleModel:
-    SynchronizeEnabled: 0
-    InterpolateOption: 0
-    InterpolateMoveTowardsSpeed: 1
-    InterpolateLerpSpeed: 0
 --- !u!1 &9073880498160726510
 GameObject:
   m_ObjectHideFlags: 0
