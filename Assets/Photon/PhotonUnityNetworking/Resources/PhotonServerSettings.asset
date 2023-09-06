@@ -42,6 +42,7 @@ MonoBehaviour:
   - GetGameState
   - UpdateJoinedClient
   - ChatMessage
+  - SendMouseAction
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

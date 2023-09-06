@@ -29,7 +29,7 @@ using UnityEngine;
 
 // 목적6: 총을 발사할 때, 일정 시간 후에 사라지는 총구 이펙트를 활성화한다.
 // 필요속성6. 총구이펙트 배열
-public class PlayerFire : MonoBehaviour
+public class PlayerFire : MonoBehaviour, IPunObservable
 {
     // 필요속성: 폭탄 게임오브젝트, 발사 위치, 방향
     public GameObject bomb;
@@ -94,123 +94,259 @@ public class PlayerFire : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!photonView.IsMine)
-            return;
-
-        // 목적7: GameManager가 Ready 상태일 때는 플레이어, 적이 움직일 수 없도록 한다.
-        if (GameManager.Instance.state != GameManager.GameState.Start)
-            return;
-
-        // 목적5: 키보드의 특정 키 입력으로 무기모드를 전환하고 싶다.
-        // 순서5-1. 노멀모드: 마우스 오른쪽 버튼을 누르면 수류탄을 던지고 싶다.
-        // 순서5-2. 스나이퍼모드: 마우스 오른쪽 버튼을 누르면 화면을 확대하고 싶다.
-
-        // 순서1. 마우스 오른쪽 버튼을 누른다.
-        if (Input.GetMouseButtonDown(1)) // 왼쪽(0), 오른쪽(1), 휠(2)
+        if (photonView.IsMine)
         {
-            switch(weaponMode)
+            // 목적7: GameManager가 Ready 상태일 때는 플레이어, 적이 움직일 수 없도록 한다.
+            if (GameManager.Instance.state != GameManager.GameState.Start)
+                return;
+
+            // 목적5: 키보드의 특정 키 입력으로 무기모드를 전환하고 싶다.
+            // 순서5-1. 노멀모드: 마우스 오른쪽 버튼을 누르면 수류탄을 던지고 싶다.
+            // 순서5-2. 스나이퍼모드: 마우스 오른쪽 버튼을 누르면 화면을 확대하고 싶다.
+
+            // 순서1. 마우스 오른쪽 버튼을 누른다.
+            if (Input.GetMouseButtonDown(1)) // 왼쪽(0), 오른쪽(1), 휠(2)
             {
-                // 순서5-1. 노멀모드: 마우스 오른쪽 버튼을 누르면 수류탄을 던지고 싶다.
-                case WeaponMode.Normal:
-                    // 순서2. 폭탄 게임오브젝트를 생성하고 firePosition에 위치시킨다.
-                    GameObject bombGO = Instantiate(bomb);
-                    bombGO.transform.position = firePosition.transform.position;
+                photonView.RPC("SendMouseAction", RpcTarget.All, 1);
 
-                    // 순서3. 폭탄 오브젝트의 rigidBody를 가져와서 카메라 정면 방향으로 힘을 가한다.
-                    Rigidbody rigidbody = bombGO.GetComponent<Rigidbody>();
-                    rigidbody.AddForce(Camera.main.transform.forward * power, ForceMode.Impulse);
-                    break;
-
-                // 순서5-2. 스나이퍼모드: 마우스 오른쪽 버튼을 누르면 화면을 확대하고 싶다.
-                case WeaponMode.Sniper:
-                    if(!isZoomMode)
-                    {
-                        // 시야각 좁게 하여 확대
-                        Camera.main.fieldOfView = 15;
-                        zoomImg.SetActive(true);
-                        isZoomMode = true;
-                    }
-                    else
-                    {
-                        // 원상태로 복구
-                        Camera.main.fieldOfView = 60;
-                        zoomImg.SetActive(false);
-                        isZoomMode = false;
-                    }
-                    break;
-            }
-        }
-
-        // 2-1. 마우스 왼쪽 버튼을 누른다.
-        if(Input.GetMouseButtonDown(0))
-        {
-            // 목적4: 이동 블랜드 트리의 파라메터 값이 0일 때, Attack Trigger를 시전하겠다.
-            if(animator.GetFloat("MoveMotion") == 0)
-            {
-                animator.SetTrigger("Attack");
-            }
-
-
-            // 2-2. 레이를 생성하고 발사 위치와 발사 방향을 설정한다.
-            Ray ray = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
-
-            // 2-3. 레이가 부딪힌 대상의 정보를 저장할 수 있는 변수를 만든다.
-            RaycastHit hitInfo = new RaycastHit();
-
-            // 2-4. 레이를 발사하고, 
-            if(Physics.Raycast(ray, out hitInfo)) // ref & out 
-            {
-                //print("충돌체와의 거리: " + hitInfo.distance);
-
-                // 부딪힌 물체가 있으면 그 위치에 피격 효과를(법선 벡터 방향으로) 만든다.
-                hitEffect.transform.position = hitInfo.point;
-                hitEffect.transform.forward = hitInfo.normal;
-
-                // 피격 이펙트를 재생한다.
-                particleSystem.Play();
-
-                // 목적3: 레이가 부딪힌 대상이 Enemy라면 Enemy에게 데미지를 주겠다.
-                if(hitInfo.transform.gameObject.layer == LayerMask.NameToLayer("Enemy"))
+                switch (weaponMode)
                 {
-                    EnemyFSM enemyFSM = hitInfo.transform.GetComponent<EnemyFSM>();
-                    enemyFSM.DamageAction(weaponPower);
+                    // 순서5-1. 노멀모드: 마우스 오른쪽 버튼을 누르면 수류탄을 던지고 싶다.
+                    case WeaponMode.Normal:
+                        // 순서2. 폭탄 게임오브젝트를 생성하고 firePosition에 위치시킨다.
+                        GameObject bombGO = Instantiate(bomb);
+                        bombGO.transform.position = firePosition.transform.position;
+
+                        // 순서3. 폭탄 오브젝트의 rigidBody를 가져와서 카메라 정면 방향으로 힘을 가한다.
+                        Rigidbody rigidbody = bombGO.GetComponent<Rigidbody>();
+                        rigidbody.AddForce(Camera.main.transform.forward * power, ForceMode.Impulse);
+                        break;
+
+                    // 순서5-2. 스나이퍼모드: 마우스 오른쪽 버튼을 누르면 화면을 확대하고 싶다.
+                    case WeaponMode.Sniper:
+                        if(!isZoomMode)
+                        {
+                            // 시야각 좁게 하여 확대
+                            Camera.main.fieldOfView = 15;
+                            zoomImg.SetActive(true);
+                            isZoomMode = true;
+                        }
+                        else
+                        {
+                            // 원상태로 복구
+                            Camera.main.fieldOfView = 60;
+                            zoomImg.SetActive(false);
+                            isZoomMode = false;
+                        }
+                        break;
+                }
+            }
+            // 2-1. 마우스 왼쪽 버튼을 누른다.
+            else if(Input.GetMouseButtonDown(0))
+            {
+                photonView.RPC("SendMouseAction", RpcTarget.All, 0);
+
+                // 목적4: 이동 블랜드 트리의 파라메터 값이 0일 때, Attack Trigger를 시전하겠다.
+                if (animator.GetFloat("MoveMotion") == 0)
+                {
+                    animator.SetTrigger("Attack");
                 }
 
+
+                // 2-2. 레이를 생성하고 발사 위치와 발사 방향을 설정한다.
+                Ray ray = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
+
+                // 2-3. 레이가 부딪힌 대상의 정보를 저장할 수 있는 변수를 만든다.
+                RaycastHit hitInfo = new RaycastHit();
+
+                // 2-4. 레이를 발사하고, 
+                if(Physics.Raycast(ray, out hitInfo)) // ref & out 
+                {
+                    //print("충돌체와의 거리: " + hitInfo.distance);
+
+                    // 부딪힌 물체가 있으면 그 위치에 피격 효과를(법선 벡터 방향으로) 만든다.
+                    hitEffect.transform.position = hitInfo.point;
+                    hitEffect.transform.forward = hitInfo.normal;
+
+                    // 피격 이펙트를 재생한다.
+                    particleSystem.Play();
+
+                    // 목적3: 레이가 부딪힌 대상이 Enemy라면 Enemy에게 데미지를 주겠다.
+                    if(hitInfo.transform.gameObject.layer == LayerMask.NameToLayer("Enemy"))
+                    {
+                        EnemyFSM enemyFSM = hitInfo.transform.GetComponent<EnemyFSM>();
+                        enemyFSM.DamageAction(weaponPower);
+                    }
+
+                }
+
+                // 총구 이펙트 실행을 위한 코루틴 시작 0.05f초에 한번씩 시작
+                StartCoroutine(ShootEffOn(0.05f));
+            }
+            // 키보드 숫자 1번을 누르면, 무기 모드를 노멀 모드로 설정한다.
+            else if(Input.GetKeyDown(KeyCode.Alpha1))
+            {
+                photonView.RPC("SendMouseAction", RpcTarget.All, 2);
+
+                weaponMode = WeaponMode.Normal;
+
+                weaponModeTxt.text = "Normal Mode";
+
+                // 카메라 FoV를 처음 상태로 바꿔준다.
+                Camera.main.fieldOfView = 60;
+
+                crossHair1Img.SetActive(true);
+                crossHair2Img.SetActive(false);
+                rifleImg.SetActive(true);
+                sniperImg.SetActive(false);
+                grenade.SetActive(true);
+            }
+            // 키보드 숫자 2번을 누르면, 무기 모드를 저격 모드로 설정한다.
+            else if(Input.GetKeyDown(KeyCode.Alpha2))
+            {
+                photonView.RPC("SendMouseAction", RpcTarget.All, 3);
+
+                weaponMode = WeaponMode.Sniper;
+
+                weaponModeTxt.text = "Sniper Mode";
+
+                crossHair1Img.SetActive(false);
+                crossHair2Img.SetActive(true);
+                rifleImg.SetActive(false);
+                sniperImg.SetActive(true);
+                grenade.SetActive(false);
+            }
+            else
+            {
+                photonView.RPC("SendMouseAction", RpcTarget.All, 4);
+            }
+        }
+        else
+        {
+            // 목적7: GameManager가 Ready 상태일 때는 플레이어, 적이 움직일 수 없도록 한다.
+            if (GameManager.Instance.state != GameManager.GameState.Start)
+                return;
+
+            // 목적5: 키보드의 특정 키 입력으로 무기모드를 전환하고 싶다.
+            // 순서5-1. 노멀모드: 마우스 오른쪽 버튼을 누르면 수류탄을 던지고 싶다.
+            // 순서5-2. 스나이퍼모드: 마우스 오른쪽 버튼을 누르면 화면을 확대하고 싶다.
+
+            // 순서1. 마우스 오른쪽 버튼을 누른다.
+            if (mouseAction == 1) // 왼쪽(0), 오른쪽(1), 휠(2)
+            {
+                switch (weaponMode)
+                {
+                    // 순서5-1. 노멀모드: 마우스 오른쪽 버튼을 누르면 수류탄을 던지고 싶다.
+                    case WeaponMode.Normal:
+                        // 순서2. 폭탄 게임오브젝트를 생성하고 firePosition에 위치시킨다.
+                        GameObject bombGO = Instantiate(bomb);
+                        bombGO.transform.position = firePosition.transform.position;
+
+                        // 순서3. 폭탄 오브젝트의 rigidBody를 가져와서 카메라 정면 방향으로 힘을 가한다.
+                        Rigidbody rigidbody = bombGO.GetComponent<Rigidbody>();
+                        rigidbody.AddForce(Camera.main.transform.forward * power, ForceMode.Impulse);
+                        break;
+
+                    // 순서5-2. 스나이퍼모드: 마우스 오른쪽 버튼을 누르면 화면을 확대하고 싶다.
+                    case WeaponMode.Sniper:
+                        if (!isZoomMode)
+                        {
+                            // 시야각 좁게 하여 확대
+                            Camera.main.fieldOfView = 15;
+                            zoomImg.SetActive(true);
+                            isZoomMode = true;
+                        }
+                        else
+                        {
+                            // 원상태로 복구
+                            Camera.main.fieldOfView = 60;
+                            zoomImg.SetActive(false);
+                            isZoomMode = false;
+                        }
+                        break;
+                }
             }
 
-            // 총구 이펙트 실행을 위한 코루틴 시작 0.05f초에 한번씩 시작
-            StartCoroutine(ShootEffOn(0.05f));
+            // 2-1. 마우스 왼쪽 버튼을 누른다.
+            if (mouseAction == 0)
+            {
+                // 목적4: 이동 블랜드 트리의 파라메터 값이 0일 때, Attack Trigger를 시전하겠다.
+                if (animator.GetFloat("MoveMotion") == 0)
+                {
+                    animator.SetTrigger("Attack");
+                }
+
+
+                // 2-2. 레이를 생성하고 발사 위치와 발사 방향을 설정한다.
+                Ray ray = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
+
+                // 2-3. 레이가 부딪힌 대상의 정보를 저장할 수 있는 변수를 만든다.
+                RaycastHit hitInfo = new RaycastHit();
+
+                // 2-4. 레이를 발사하고, 
+                if (Physics.Raycast(ray, out hitInfo)) // ref & out 
+                {
+                    //print("충돌체와의 거리: " + hitInfo.distance);
+
+                    // 부딪힌 물체가 있으면 그 위치에 피격 효과를(법선 벡터 방향으로) 만든다.
+                    hitEffect.transform.position = hitInfo.point;
+                    hitEffect.transform.forward = hitInfo.normal;
+
+                    // 피격 이펙트를 재생한다.
+                    particleSystem.Play();
+
+                    // 목적3: 레이가 부딪힌 대상이 Enemy라면 Enemy에게 데미지를 주겠다.
+                    if (hitInfo.transform.gameObject.layer == LayerMask.NameToLayer("Enemy"))
+                    {
+                        EnemyFSM enemyFSM = hitInfo.transform.GetComponent<EnemyFSM>();
+                        enemyFSM.DamageAction(weaponPower);
+                    }
+
+                }
+
+                // 총구 이펙트 실행을 위한 코루틴 시작 0.05f초에 한번씩 시작
+                StartCoroutine(ShootEffOn(0.05f));
+            }
+
+            // 키보드 숫자 1번을 누르면, 무기 모드를 노멀 모드로 설정한다.
+            if (mouseAction == 2)
+            {
+                weaponMode = WeaponMode.Normal;
+
+                weaponModeTxt.text = "Normal Mode";
+
+                // 카메라 FoV를 처음 상태로 바꿔준다.
+                Camera.main.fieldOfView = 60;
+
+                crossHair1Img.SetActive(true);
+                crossHair2Img.SetActive(false);
+                rifleImg.SetActive(true);
+                sniperImg.SetActive(false);
+                grenade.SetActive(true);
+            }
+            // 키보드 숫자 2번을 누르면, 무기 모드를 저격 모드로 설정한다.
+            else if (mouseAction == 3)
+            {
+                weaponMode = WeaponMode.Sniper;
+
+                weaponModeTxt.text = "Sniper Mode";
+
+                crossHair1Img.SetActive(false);
+                crossHair2Img.SetActive(true);
+                rifleImg.SetActive(false);
+                sniperImg.SetActive(true);
+                grenade.SetActive(false);
+            }
         }
+    }
 
-        // 키보드 숫자 1번을 누르면, 무기 모드를 노멀 모드로 설정한다.
-        if(Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            weaponMode = WeaponMode.Normal;
+    // RPC를 위한 변수
+    int mouseAction = 4;
 
-            weaponModeTxt.text = "Normal Mode";
-
-            // 카메라 FoV를 처음 상태로 바꿔준다.
-            Camera.main.fieldOfView = 60;
-
-            crossHair1Img.SetActive(true);
-            crossHair2Img.SetActive(false);
-            rifleImg.SetActive(true);
-            sniperImg.SetActive(false);
-            grenade.SetActive(true);
-        }
-        // 키보드 숫자 2번을 누르면, 무기 모드를 저격 모드로 설정한다.
-        else if(Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            weaponMode = WeaponMode.Sniper;
-
-            weaponModeTxt.text = "Sniper Mode";
-
-            crossHair1Img.SetActive(false);
-            crossHair2Img.SetActive(true);
-            rifleImg.SetActive(false);
-            sniperImg.SetActive(true);
-            grenade.SetActive(false);
-        }
+    [PunRPC]
+    void SendMouseAction(int input)
+    {
+        mouseAction = input;
     }
 
     // 목적6: 총을 발사할 때, 일정 시간 후에 사라지는 총구 이펙트를 랜덤으로 활성화한다.
@@ -244,4 +380,19 @@ public class PlayerFire : MonoBehaviour
         return a / b;
     }
 
+    int receivedMouseBtn;
+
+
+
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if(stream.IsWriting) 
+        {
+            stream.SendNext(receivedMouseBtn);
+        }
+        else
+        {
+            receivedMouseBtn = (int)stream.ReceiveNext();
+        }
+    }
 }
