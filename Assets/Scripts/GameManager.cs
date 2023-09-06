@@ -4,6 +4,7 @@ using Photon.Pun;
 using Photon.Pun.UtilityScripts;
 using Photon.Realtime;
 using TMPro;
+using Unity.AI.Navigation;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -59,6 +60,8 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     // 게임시작시 활성화 할 적그룹
     public GameObject grpEnemies;
+    public GameObject enemyPref;
+    public NavMeshSurface humanoidSurface;
 
     private void Awake()
     {
@@ -114,12 +117,29 @@ public class GameManager : MonoBehaviourPunCallbacks
         GameObject playerObj = PhotonNetwork.Instantiate(playerPrefab.name, spawnPoints[myPlayerNumber].position, Quaternion.identity);
         print(playerObj.name);
 
+        GameObject enemyObj = PhotonNetwork.Instantiate(enemyPref.name, spawnPoints[myPlayerNumber].position, Quaternion.identity);
+
+        enemyObj.GetComponent<EnemyFSM>().player = playerObj.transform;
+
+        // 모든 적의 HP Bar는 항상 나(컨트롤하는 플레이어)를 향한다.
+        HpBarTarget[] enmies = GameObject.FindObjectsOfType<HpBarTarget>();
+        
+        foreach(var enemy in enmies)
+        {
+            enemy.GetComponent<HpBarTarget>().target = playerObj.transform;
+        }
+
+
+        humanoidSurface.BuildNavMesh();
+
 
         // 게임이 시작되면 플레이어를 찾고 애니메이터를 가져온다.
         player = playerObj.GetComponent<PlayerMove>();
         animator = player.GetComponentInChildren<Animator>();
 
-        grpEnemies.SetActive(true);
+        //grpEnemies.SetActive(true);
+
+
 
         stateText.text = "Game Start";
         stateText.color = new Color32(0, 255, 0, 255);

@@ -142,12 +142,14 @@ public class PlayerMove : MonoBehaviour, IPunObservable
         }
         else
         {
-            transform.position = receivedPos;
-            transform.rotation = receivedRot;
+            // Send or receive 빈도가 네트워 사양에 따라 달라져서 플레이어의 움직임이 끊기는 것을 선형보간을 통해 방지
+            transform.position = Vector3.Lerp(transform.position, receivedPos, Time.deltaTime * 20);
+            transform.rotation = Quaternion.Lerp(transform.rotation, receivedRot, Time.deltaTime * 20);
 
             // 순서2. 이동 방향을 설정한다.
             Vector3 dir = new Vector3(receivedH, 0, receivedV);
-            dir = Camera.main.transform.TransformDirection(dir);
+            //dir = Camera.main.transform.TransformDirection(dir);
+            dir = transform.GetChild(1).transform.TransformDirection(dir);
 
             // 목적8: 플레이어의 자식 중 모델링 오브젝트에 있는 애니메이터 컴포넌트를 가져와서 블랜딩 트리를 호출하고 싶다.
             animator.SetFloat("MoveMotion", dir.magnitude);

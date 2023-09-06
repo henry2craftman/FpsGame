@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using Photon.Pun;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
@@ -46,7 +47,10 @@ using UnityEngine.UI;
 // 목표 13: Enemy의 초기 속도를 Agent의 속도에 적용하고 싶다.
 
 // 목표 14: 에이전트가 NavMeshLink에 올라고 내려가는지 확인하여 점프 애니메이션을 넣고싶다.
-public class EnemyFSM : MonoBehaviour
+
+// 목표 15: IPunObservable 인터페이스 선언을 통해 적의 위치와 회전을 동기화 하고 싶다.
+// 필요속성15: 적의 PhotonView
+public class EnemyFSM : MonoBehaviourPun, IPunObservable
 {
     // 필요속성: 적 상태
     enum EnemyState
@@ -62,7 +66,7 @@ public class EnemyFSM : MonoBehaviour
 
     // 필요속성2: 플레이어와의 거리, 플레이어 트랜스폼
     public float findDistance = 5f;
-    Transform player;
+    public Transform player;
 
     // 필요속성3: 이동 속도, 적의 이동을 위한 캐릭터컨트롤러, 공격범위
     public float moveSpeed;
@@ -94,12 +98,16 @@ public class EnemyFSM : MonoBehaviour
     // 필요속성11. 네비게이션 에이전트
     NavMeshAgent navMeshAgent;
 
+    // 필요속성15: 적의 PhotonView
+    PhotonView pv;
+
     // Start is called before the first frame update
     void Start()
     {
         enemyState = EnemyState.Idle;
 
-        player = GameManager.Instance.player.transform;
+        //player = GameManager.Instance.player.transform;
+        //player = GameObject.Find("GameManger").GetComponent<GameManager>().player.transform;
 
         characterController = GetComponent<CharacterController>();
 
@@ -113,40 +121,51 @@ public class EnemyFSM : MonoBehaviour
 
         // 목표 13: Enemy의 초기 속도를 Agent의 속도에 적용하고 싶다.
         navMeshAgent.speed = moveSpeed;
+
+        pv = GetComponent<PhotonView>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        // 목적7: GameManager가 Ready 상태일 때는 플레이어, 적이 움직일 수 없도록 한다.
-        if (GameManager.Instance.state != GameManager.GameState.Start)
-            return;
-
-        // 목표: 적을 FSM 다이어그램에 따라 동작시키고 싶다.
-        switch (enemyState)
+        if(pv.IsMine)
         {
-            case EnemyState.Idle:
-                Idle();
-                break;
-            case EnemyState.Move:
-                Move();
-                break;
-            case EnemyState.Attack:
-                Attack();
-                break;
-            case EnemyState.Return:
-                Return();
-                break;
-            case EnemyState.Damaged:
-                //Damaged();
-                break;
-            case EnemyState.Die:
-                //Die();
-                break;
-        }
+            // 목적7: GameManager가 Ready 상태일 때는 플레이어, 적이 움직일 수 없도록 한다.
+            if (GameManager.Instance.state != GameManager.GameState.Start)
+                return;
 
-        // 목적9. 현재 에네미의 hp(%)를 hp 슬라이더에 적용한다.
-        hpSlider.value = (float)hp / maxHP;
+            // 목표: 적을 FSM 다이어그램에 따라 동작시키고 싶다.
+            switch (enemyState)
+            {
+                case EnemyState.Idle:
+                    Idle();
+                    break;
+                case EnemyState.Move:
+                    Move();
+                    break;
+                case EnemyState.Attack:
+                    Attack();
+                    break;
+                case EnemyState.Return:
+                    Return();
+                    break;
+                case EnemyState.Damaged:
+                    //Damaged();
+                    break;
+                case EnemyState.Die:
+                    //Die();
+                    break;
+            }
+
+            // 목적9. 현재 에네미의 hp(%)를 hp 슬라이더에 적용한다.
+            hpSlider.value = (float)hp / maxHP;
+        }
+        else
+        {
+            transform.position = Vector3.Lerp(transform.position, receivedPos, Time.deltaTime * 20);
+            
+            transform.rotation = Quaternion.Lerp(transform.rotation, receivedRot, Time.deltaTime * 20);
+        }
     }
 
     private void Die()
@@ -354,6 +373,25 @@ public class EnemyFSM : MonoBehaviour
 
             // 목표 10. Idle 상태에서 Move 상태로 Animation 전환을 한다.
             animator.SetTrigger("Idle2Move");
+        }
+    }
+
+    // 목표 15: IPunObservable 인터페이스 선언을 통해 적의 위치와 회전을 동기화 하고 싶다.
+    Vector3 receivedPos;
+    Quaternion receivedRot;
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        // 보낼 때
+        if (stream.IsWriting)
+        {
+            stream.SendNext(transform.position);
+            stream.SendNext(transform.rotation);
+        }
+        // 받을 때
+        else
+        {
+            receivedPos = (Vector3)stream.ReceiveNext();
+            receivedRot = (Quaternion)stream.ReceiveNext();
         }
     }
 }
