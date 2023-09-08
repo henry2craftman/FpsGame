@@ -18,7 +18,7 @@ public class RoomManager : MonoBehaviourPunCallbacks
     // 필요속성2: PhotonView 플레이어
     public PhotonView playerPrefab;
 
-    public static int isReady = 0;
+    public static int playerNum = 0;
     PhotonView pv;
 
     private void Awake()
@@ -54,14 +54,17 @@ public class RoomManager : MonoBehaviourPunCallbacks
             infoText.text = string.Format("Room: {0}\nPlayer number: {1}\nMax player number: {2}\n{3}", roomName, playerCnt, maxPlayersCnt, playerNames);
 
 
-            readyMsg += $"Player{isReady++}: I'm Ready!\n";
+            readyMsg += $"Player{playerNum++}: I'm Ready!\n";
             infoText.text = readyMsg;
             pv.RPC("SendMessage", RpcTarget.All, readyMsg);
 
         }
 
         // 목적2: Photon view를 가진 플레이어를 생성한다.
-        PhotonNetwork.Instantiate(playerPrefab.name, Vector3.zero, Quaternion.identity);
+        GameObject player = PhotonNetwork.Instantiate(playerPrefab.name, Vector3.zero, Quaternion.identity);
+        player.GetComponentInChildren<TMP_Text>().text = $"Player {playerNum}";
+
+
     }
 
 
@@ -83,4 +86,5 @@ public class RoomManager : MonoBehaviourPunCallbacks
         SceneManager.LoadScene(1);
     }
 }
+
 

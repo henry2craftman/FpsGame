@@ -1,6 +1,7 @@
 ﻿using Photon.Pun;
 using TMPro;
 using UnityEngine.SceneManagement;
+using UnityEngine;
 
 // 목적: Photon 게임 서버에 연결한다.
 // 목적2: 로비에 입장한다.
@@ -18,7 +19,11 @@ public class ConnectionManager : MonoBehaviourPunCallbacks
     // 목적: Photon 게임 서버에 연결한다.
     public void Connect()
     {
+        Application.targetFrameRate = 30;
+
         PhotonNetwork.AutomaticallySyncScene = true;
+        PhotonNetwork.SendRate = 60;
+        PhotonNetwork.SerializationRate = 60;
         PhotonNetwork.ConnectUsingSettings();
     }
 

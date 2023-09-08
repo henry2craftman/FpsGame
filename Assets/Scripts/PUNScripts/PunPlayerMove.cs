@@ -22,7 +22,7 @@ public class PunPlayerMove : MonoBehaviour, IPunObservable
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         if (pv.IsMine)
         {
@@ -62,12 +62,12 @@ public class PunPlayerMove : MonoBehaviour, IPunObservable
         {
             //transform.position = currPos;
             //transform.rotation = currRot;
-
             transform.position = Vector3.Lerp(transform.position, currPos, Time.deltaTime * 20f);
             transform.rotation = Quaternion.Lerp(transform.rotation, currRot, Time.deltaTime * 20f);
 
             //RoomManager.Instance.infoText.text = currPos.ToString();
         }
+        print(PhotonNetwork.GetPing());
     }
 
     // 클론에게 보내는 메시지
@@ -90,13 +90,13 @@ public class PunPlayerMove : MonoBehaviour, IPunObservable
     {
         if (stream.IsWriting)
         {
-            stream.SendNext(RoomManager.isReady);
+            stream.SendNext(RoomManager.playerNum);
             stream.SendNext(transform.position);
             stream.SendNext(transform.rotation);
         }
         else
         {
-            RoomManager.isReady = (int)stream.ReceiveNext();
+            RoomManager.playerNum = (int)stream.ReceiveNext();
             this.currPos = (Vector3)stream.ReceiveNext();
             this.currRot = (Quaternion)stream.ReceiveNext();
         }
