@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<stages>
+	<stage>
+		<stageNumber>1</stageNumber>
+		<monsters>
+			<monster>
+				<name>Goblin</name>
+				<health>50</health>
+			</monster>
+			<monster>
+				<name>Orc</name>
+				<health>80</health>
+			</monster>
+		</monsters>
+	</stage>
+
+	<stage>
+		<stageNumber>2</stageNumber>
+		<monsters>
+			<monster>
+				<name>Skeleton</name>
+				<health>60</health>
+			</monster>
+			<monster>
+				<name>Zombie</name>
+				<health>70</health>
+			</monster >
+		</monsters >
+	</stage >
+	<!-- 추가적인 스테이지 정보... -->
+</stages>
